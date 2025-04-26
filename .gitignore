@@ -1,0 +1,7 @@
+node_modules/
+out/
+.env
+**/node_modules/
+api-key-aggregetor/out
+**/*.vsix
+.vscode-test/
