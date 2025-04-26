@@ -3,6 +3,7 @@
   "displayName": "api-key-aggregetor",
   "description": "gemini api key聚合",
   "version": "0.0.1",
+  "publisher": "ShaneYang",
   "engines": {
     "vscode": "^1.97.0"
   },
