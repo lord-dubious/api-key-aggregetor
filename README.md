@@ -1,65 +1,57 @@
 # API Key Aggregator VS Code Extension
 
-这是一个将 Google Gemini API Key 本地代理服务器集成到 VS Code 插件中的项目。旨在解决使用单个 API Key 时的并发限制问题，并支持流式响应。
+Are you a developer using intelligent coding plugins like **Cline** or **Roo Code** and frequently encountering `429 too many requests` errors with the free tier of the Gemini API? This often happens due to concurrency limits when making multiple requests.
 
-## 功能
+This tool provides a solution by aggregating multiple Gemini API keys and distributing requests among them. By using this extension, you can effectively overcome the limitations of a single free API key, achieving **double freedom** in both **token usage** and **query frequency**.
 
-*   在 VS Code 插件中内嵌一个 HTTP 代理服务器。
-*   管理多个 Google Gemini API Key。
-*   根据策略（目前是简单轮询）分发 API 请求到不同的 Key。
-*   支持 Google Gemini API 的流式响应转发。
-*   处理速率限制错误，并对 Key 进行冷却。
+This is a project that integrates a Google Gemini API Key local proxy server into a VS Code extension. It aims to solve the concurrency limitations when using a single API Key and supports streaming responses.
 
-## 安装和运行
+## Features
 
-1.  **克隆项目：**
-    ```bash
-    git clone your_repository_url
-    cd gemini-aggregetor
-    ```
-2.  **安装依赖：**
-    ```bash
-    npm install -g yo generator-code
-    npm install
-    cd api-key-aggregetor
-    npm install
-    ```
-3.  **在 VS Code 中打开插件项目：**
-    ```bash
-    code api-key-aggregetor
-    ```
-4.  **配置 API Key：**
-    API Key 现在通过 VS Code 配置界面进行管理。
-    **配置方法：**
-    *   打开 VS Code 设置 (File > Preferences > Settings 或 Code > Preferences > Settings)。
-    *   搜索 `geminiAggregator.apiKeys`。
-    *   在 "API Keys" 设置项中，点击 "Edit in settings.json" 或通过设置 UI 添加你的 Gemini API Key 数组。
-    *   例如：
-    ```json
-    {
-      "geminiAggregator.apiKeys": [
-        "YOUR_API_KEY_1",
-        "YOUR_API_KEY_2"
-      ]
-    }
-    ```
-    替换 `"YOUR_API_KEY_1", "YOUR_API_KEY_2"` 为你的实际 API Key。
-5.  **运行插件（调试模式）：**
-    *   在新打开的 VS Code 窗口中，打开调试视图 (Debug View) (通常在侧边栏的虫子图标)。
-    *   在顶部的下拉菜单中选择 "Run Extension" 配置。
-    *   点击绿色的开始调试按钮 (Start Debugging)。
+*   Embeds an HTTP proxy server within the VS Code extension.
+*   Manages multiple Google Gemini API Keys.
+*   Distributes API requests to different Keys based on a strategy (currently simple round-robin).
+*   Supports forwarding streaming responses from the Google Gemini API.
+*   Handles rate limiting errors and cools down Keys.
 
-    这将会打开一个新的 VS Code 窗口，其中加载了我们正在开发的插件。插件激活时，内嵌的代理服务器应该会启动，并在调试控制台中输出启动信息（例如 "Proxy server is running on port XXXX"）。
+## Usage
 
-6. **打包扩展**
-   * 执行 `vsce package`
+### Installation
 
-## 与其他扩展集成（例如 Cline）
+Install the extension from the VS Code Marketplace.
 
-一旦代理服务器成功启动，它将监听一个特定的端口（默认为 3145）。其他需要使用 Gemini API 的扩展（如 Cline）可以将它们的 API Endpoint 配置指向这个本地代理服务器的地址和端口。
+Alternatively, you can build and install from source. See the [Development Guide](DEVELOPMENT.md) for instructions.
 
-例如，在 Cline 插件的设置中，将 Gemini API Endpoint 配置为 `http://localhost:3145`。
+### Configuring API Keys
 
-## 项目状态和未来计划
-*   考虑更复杂的请求分发策略。
-*   编写单元测试和集成测试。
+API Keys are managed through the VS Code command palette.
+
+1.  Open the Command Palette (Ctrl+Shift+P or Cmd+Shift+P).
+2.  Run the command "Gemini: Add API Key".
+3.  Enter your Gemini API Key in the input box. The input will be hidden like a password.
+4.  You can add multiple keys by running the command again.
+5.  To view a summary of added keys, run the command "Gemini: List API Keys".
+6.  To modify an existing key, run the command "Gemini: Modify API Key".
+7.  To delete a key, run the command "Gemini: Delete API Key".
+
+## Integration with other extensions (e.g., Cline)
+
+Once the proxy server is successfully started, it will listen on a specific port (default is 3145). Other extensions that need to use the Gemini API (like Cline) can configure their API Endpoint to point to the address and port of this local proxy server.
+
+For example, in the Cline extension settings, configure the Gemini API Endpoint to `http://localhost:3145`.
+
+## Project Status and Future Plans
+
+*   Consider more complex request distribution strategies.
+
+## 中文文档
+
+[点击此处查看中文版 README](README.zh-CN.md)
+
+---
+
+## Support This Project
+
+If you find this project helpful, please consider giving it a star on GitHub! Your support is greatly appreciated.
+
+[![GitHub stars](https://img.shields.io/github/stars/JamzYang/api-key-aggregetor?style=social)](https://github.com/JamzYang/api-key-aggregetor)
