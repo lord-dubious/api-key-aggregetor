@@ -15,12 +15,12 @@ interface Config {
 
 // 从环境变量中解析配置
 const config: Config = {
-  PORT: parseInt(process.env.PORT || '3145', 10),
+  PORT: parseInt(process.env.PORT || '3146', 10),
   KEY_COOL_DOWN_DURATION_MS: parseInt(process.env.KEY_COOL_DOWN_DURATION_MS || '60000', 10),
   LOG_LEVEL: process.env.LOG_LEVEL || 'info',
   DISPATCH_STRATEGY: process.env.DISPATCH_STRATEGY || 'round_robin',
   // 从 VS Code 配置中获取 API Keys
-  apiKeys: vscode.workspace.getConfiguration('geminiAggregator').get('apiKeys') || [],
+  apiKeys: vscode.workspace.getConfiguration('geminiAggregator-dev').get('apiKeys') || [],
 };
 
 // 导出配置对象

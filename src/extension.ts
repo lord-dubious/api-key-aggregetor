@@ -97,14 +97,14 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	// Example command from the template (can be removed later)
 console.log('Roo: Before registering runserver command');
-	const disposable = vscode.commands.registerCommand('geminiAggregator.runserver', () => {
+	const disposable = vscode.commands.registerCommand('geminiAggregator-dev.runserver', () => {
 		vscode.window.showInformationMessage('Run Server from api-key-aggregetor!');
 	});
 console.log('Roo: After registering runserver command');
 	context.subscriptions.push(disposable);
 
 	// Register command to add API Key
-	const addApiKeyCommand = vscode.commands.registerCommand('geminiAggregator.addApiKey', async () => {
+	const addApiKeyCommand = vscode.commands.registerCommand('geminiAggregator-dev.addApiKey', async () => {
 		const apiKey = await vscode.window.showInputBox({
 			prompt: 'Please enter your Gemini API Key',
 			ignoreFocusOut: true,
@@ -161,12 +161,12 @@ console.log('Roo: After registering runserver command');
 	context.subscriptions.push(addApiKeyCommand);
 
 	// Register command to list API Keys (showing partial key)
-	const listApiKeysCommand = vscode.commands.registerCommand('geminiAggregator.listApiKeys', async () => {
+	const listApiKeysCommand = vscode.commands.registerCommand('geminiAggregator-dev.listApiKeys', async () => {
 		const existingKeyIdsJson = await context.secrets.get("geminiApiKeysIds");
 		const existingKeyIds: string[] = existingKeyIdsJson ? JSON.parse(existingKeyIdsJson) : [];
 
 		if (existingKeyIds.length === 0) {
-			vscode.window.showInformationMessage('No Gemini API Key found. Please run the "geminiAggregator.addApiKey" command to add one.');
+			vscode.window.showInformationMessage('No Gemini API Key found. Please run the "geminiAggregator-dev.addApiKey" command to add one.');
 			return;
 		}
 
@@ -198,7 +198,7 @@ console.log('Roo: After registering runserver command');
 	context.subscriptions.push(listApiKeysCommand);
 
 	// Register command to delete API Key
-	const deleteApiKeyCommand = vscode.commands.registerCommand('geminiAggregator.deleteApiKey', async () => {
+	const deleteApiKeyCommand = vscode.commands.registerCommand('geminiAggregator-dev.deleteApiKey', async () => {
 		const existingKeyIdsJson = await context.secrets.get("geminiApiKeysIds");
 		const existingKeyIds: string[] = existingKeyIdsJson ? JSON.parse(existingKeyIdsJson) : [];
 
@@ -246,7 +246,7 @@ console.log('Roo: After registering runserver command');
 	context.subscriptions.push(deleteApiKeyCommand);
 
 	// Register command to modify API Key
-	const modifyApiKeyCommand = vscode.commands.registerCommand('geminiAggregator.modifyApiKey', async () => {
+	const modifyApiKeyCommand = vscode.commands.registerCommand('geminiAggregator-dev.modifyApiKey', async () => {
 		const existingKeyIdsJson = await context.secrets.get("geminiApiKeysIds");
 		const existingKeyIds: string[] = existingKeyIdsJson ? JSON.parse(existingKeyIdsJson) : [];
 

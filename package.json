@@ -1,9 +1,9 @@
 {
-  "name": "api-key-aggregetor",
-  "displayName": "Gemini API Key Aggregator Proxy",
+  "name": "api-key-aggregetor-dev",
+  "displayName": "Gemini API Key Aggregator Proxy Plus",
   "description": "Aggregates multiple Google Gemini API keys to bypass rate limits and improve concurrency for VS Code extensions like Cline and Roo Code.",
   "version": "0.0.2",
-  "publisher": "ShaneYang",
+  "publisher": "rlong",
   "engines": {
     "vscode": "^1.97.0"
   },
@@ -24,39 +24,39 @@
     "Concurrency"
   ],
   "activationEvents": [
-    "onCommand:geminiAggregator.runserver",
+    "onCommand:geminiAggregator-dev.runserver",
     "onStartupFinished"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "geminiAggregator.runserver",
+        "command": "geminiAggregator-dev.runserver",
         "title": "Run Server"
       },
       {
-        "command": "geminiAggregator.addApiKey",
+        "command": "geminiAggregator-dev.addApiKey",
         "title": "Gemini: Add API Key"
       },
       {
-        "command": "geminiAggregator.listApiKeys",
+        "command": "geminiAggregator-dev.listApiKeys",
         "title": "Gemini: List API Keys"
       },
       {
-        "command": "geminiAggregator.modifyApiKey",
+        "command": "geminiAggregator-dev.modifyApiKey",
         "title": "Gemini: Modify API Key"
       },
       {
-        "command": "geminiAggregator.deleteApiKey",
+        "command": "geminiAggregator-dev.deleteApiKey",
         "title": "Gemini: Delete API Key"
       }
     ],
     "configuration": {
       "title": "Gemini API Key Aggregator Configuration",
       "properties": {
-        "geminiAggregator.port": {
+        "geminiAggregator-dev.port": {
           "type": "number",
-          "default": 3145,
+          "default": 3146,
           "description": "Port to be used by the proxy server."
         }
       }
