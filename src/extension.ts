@@ -1,6 +1,8 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
+import * as path from 'path'; // 引入 path 模組
+import * as fs from 'fs';     // 引入 fs 模組
 import express from 'express';
 import http from 'http'; // Import http module
 import config from './server/config'; // Import config from the copied server code
@@ -300,16 +302,87 @@ console.log('Roo: After registering runserver command');
 
 	const openPanelCommand = vscode.commands.registerCommand('geminiAggregator-dev.openPanel', () => {
 		const panel = vscode.window.createWebviewPanel(
-			'geminiAggregatorPanel', // Identifies the type of the webview panel
-			'Gemini Aggregator Panel', // Title of the panel
-			vscode.ViewColumn.One, // Editor column to show the new webview panel in
+			'geminiAggregatorPanel', // 識別 Webview Panel 的類型
+			'Gemini Aggregator Panel', // Panel 的標題
+			vscode.ViewColumn.One, // 顯示 Panel 的編輯器欄位
+			{
+				enableScripts: true, // 啟用 JavaScript
+				// 允許 Webview 載入來自 dist/webview-ui 目錄的本地資源
+				localResourceRoots: [vscode.Uri.joinPath(context.extensionUri, 'dist', 'webview-ui')]
+			}
 		);
 
-		// Set the HTML content of the webview
-		panel.webview.html = `<p>test</p>`;
-	});
+		// 獲取打包後資源的 URI
+		const webviewAppPath = vscode.Uri.joinPath(context.extensionUri, 'dist', 'webview-ui', 'bundle.js');
+		const webviewHtmlPath = vscode.Uri.joinPath(context.extensionUri, 'dist', 'webview-ui', 'index.html');
 
-	// TODO: Modify API key loading logic to read from SecretStorage
+		const scriptUri = panel.webview.asWebviewUri(webviewAppPath);
+		// panel.webview.html = `<p>testtttttttt123456</p>`; // 暫時註解掉這行，讓 fs.readFile 決定內容
+
+
+		// 為了 CSP，生成一個隨機的 nonce
+		const nonce = getNonce();
+
+		// 讀取打包後的 HTML 模板
+		console.log('Roo: context.extensionUri.fsPath:', context.extensionUri.fsPath);
+		console.log('Roo: webviewAppPath.fsPath:', webviewAppPath.fsPath);
+		console.log('Roo: webviewHtmlPath.fsPath:', webviewHtmlPath.fsPath);
+
+		fs.readFile(webviewHtmlPath.fsPath, 'utf8', (err, data) => {
+			if (err) {
+				vscode.window.showErrorMessage('無法讀取 Webview HTML 檔案: ' + err.message);
+				console.error('Roo: 無法讀取 Webview HTML 檔案:', err); // 添加錯誤日誌
+				return;
+			}
+			vscode.window.showInformationMessage('已讀取 Webview HTML 檔案'); // 將 showErrorMessage 改為 showInformationMessage
+
+
+			// 替換 HTML 內容中的佔位符
+			let htmlContent = data
+				.replace(/\{\{scriptUri\}\}/g, scriptUri.toString())
+				.replace(/\{\{nonce\}\}/g, nonce)
+				.replace(/\{\{cspSource\}\}/g, panel.webview.cspSource); // 確保 CSP 來源正確
+
+			panel.webview.html = htmlContent;
+		});
+
+		// 監聽來自 Webview 的訊息
+		panel.webview.onDidReceiveMessage(
+			async message => {
+				switch (message.command) {
+					case 'getGlobalState':
+						const value = context.globalState.get(message.key);
+						panel.webview.postMessage({ command: 'globalStateValue', key: message.key, value: value });
+						return;
+					case 'updateGlobalState':
+						await context.globalState.update(message.key, message.value);
+						vscode.window.showInformationMessage(`Global State 已更新: ${message.key} = ${message.value}`);
+						return;
+					case 'executeCommand':
+						try {
+							const result = await vscode.commands.executeCommand(message.commandName, ...(message.args || []));
+							panel.webview.postMessage({ command: 'commandResult', result: result, success: true });
+						} catch (error: any) {
+							panel.webview.postMessage({ command: 'commandResult', error: error.message, success: false });
+						}
+						return;
+				}
+			},
+			undefined,
+			context.subscriptions
+		);
+	});
+	context.subscriptions.push(openPanelCommand);
+}
+
+// 輔助函數：生成 Nonce
+function getNonce() {
+	   let text = '';
+	   const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+	   for (let i = 0; i < 32; i++) {
+	       text += possible.charAt(Math.floor(Math.random() * possible.length));
+	   }
+	   return text;
 }
 
 // This method is called when your extension is deactivated

@@ -5,8 +5,11 @@
 		"moduleResolution": "Node16", // Set moduleResolution back to Node16
 		"outDir": "out",
 		"lib": [
-			"ES2022"
+			"ES2022",
+			"DOM",
+			"DOM.Iterable"
 		],
+		"jsx": "react-jsx", // Add JSX support
 		"sourceMap": true,
 		"rootDir": "src",
 		"strict": true,   /* enable all strict type-checking options */
@@ -21,6 +24,7 @@
 		]
 	},
 	"exclude": [
-		"node_modules/@types/jest"
+		"node_modules/@types/jest",
+		"src/webview-ui" // Exclude webview-ui from root tsconfig compilation
 	]
 }
