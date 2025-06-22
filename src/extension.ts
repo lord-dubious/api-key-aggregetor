@@ -350,21 +350,48 @@ console.log('Roo: After registering runserver command');
 		panel.webview.onDidReceiveMessage(
 			async message => {
 				switch (message.command) {
-					case 'getGlobalState':
-						const value = context.globalState.get(message.key);
-						panel.webview.postMessage({ command: 'globalStateValue', key: message.key, value: value });
-						return;
-					case 'updateGlobalState':
-						await context.globalState.update(message.key, message.value);
-						vscode.window.showInformationMessage(`Global State 已更新: ${message.key} = ${message.value}`);
-						return;
-					case 'executeCommand':
-						try {
-							const result = await vscode.commands.executeCommand(message.commandName, ...(message.args || []));
-							panel.webview.postMessage({ command: 'commandResult', result: result, success: true });
-						} catch (error: any) {
-							panel.webview.postMessage({ command: 'commandResult', error: error.message, success: false });
+					// case 'getGlobalState':
+					// 	const value = context.globalState.get(message.key);
+					// 	panel.webview.postMessage({ command: 'globalStateValue', key: message.key, value: value });
+					// 	return;
+					// case 'updateGlobalState':
+					// 	await context.globalState.update(message.key, message.value);
+					// 	vscode.window.showInformationMessage(`Global State 已更新: ${message.key} = ${message.value}`);
+					// 	return;
+					// case 'executeCommand':
+					// 	try {
+					// 		const result = await vscode.commands.executeCommand(message.commandName, ...(message.args || []));
+					// 		panel.webview.postMessage({ command: 'commandResult', result: result, success: true });
+					// 	} catch (error: any) {
+					// 		panel.webview.postMessage({ command: 'commandResult', error: error.message, success: false });
+					// 	}
+					// 	return;
+					case 'getApiKeys(request)':
+						// 獲取 API Keys 並發送到 Webview
+						interface Key {
+							keyId: string;
+							apiKey:string
 						}
+
+						const existingKeyIdsJson = await context.secrets.get("geminiApiKeysIds");
+						const existingKeyIds: string[] = existingKeyIdsJson ? JSON.parse(existingKeyIdsJson) : [];
+
+						// Sort keys numerically based on the number in keyId (e.g., key1, key2, key10)
+						existingKeyIds.sort((a, b) => {
+							const numA = parseInt(a.replace('key', ''), 10);
+							const numB = parseInt(b.replace('key', ''), 10);
+							return numA - numB;
+						});
+
+						let keys: Key[] = [];
+
+						for (const keyId of existingKeyIds) {
+							const apiKey = await context.secrets.get(keyId);
+							if (apiKey) {
+								keys.push({ keyId, apiKey });
+							}
+						}
+						panel.webview.postMessage({ command: 'getApiKeys(response)', keys });
 						return;
 				}
 			},
