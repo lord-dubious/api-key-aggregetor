@@ -298,6 +298,17 @@ console.log('Roo: After registering runserver command');
 	});
 	context.subscriptions.push(modifyApiKeyCommand);
 
+	const openPanelCommand = vscode.commands.registerCommand('geminiAggregator-dev.openPanel', () => {
+		const panel = vscode.window.createWebviewPanel(
+			'geminiAggregatorPanel', // Identifies the type of the webview panel
+			'Gemini Aggregator Panel', // Title of the panel
+			vscode.ViewColumn.One, // Editor column to show the new webview panel in
+		);
+
+		// Set the HTML content of the webview
+		panel.webview.html = `<p>test</p>`;
+	});
+
 	// TODO: Modify API key loading logic to read from SecretStorage
 }
 

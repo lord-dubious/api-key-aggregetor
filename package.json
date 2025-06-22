@@ -49,6 +49,10 @@
       {
         "command": "geminiAggregator-dev.deleteApiKey",
         "title": "Gemini: Delete API Key"
+      },
+      {
+        "command": "geminiAggregator-dev.openPanel",
+        "title": "Gemini: Open Aggregator Panel"
       }
     ],
     "configuration": {
