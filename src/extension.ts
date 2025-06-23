@@ -361,7 +361,7 @@ console.log('Roo: After registering runserver command');
 				localResourceRoots: [vscode.Uri.joinPath(context.extensionUri, 'dist', 'webview-ui')]
 			}
 		);
-		const panel = webviewPanel;
+		const panel = webviewPanel; // Keep this line for consistency if 'panel' is used elsewhere in this block
 
 		// 獲取打包後資源的 URI
 		const webviewAppPath = vscode.Uri.joinPath(context.extensionUri, 'dist', 'webview-ui', 'bundle.js');
@@ -432,19 +432,23 @@ console.log('Roo: After registering runserver command');
 		);
 
 		// 監聽 emit
-		eventManager.on("apiKeyStatusUpdate", (apiKey: ApiKey) => {
-			if (panel) {
-				panel.webview.postMessage({
+		const apiKeyStatusUpdateListener = (apiKey: ApiKey) => {
+			if (webviewPanel) { // 使用全域 webviewPanel 變數
+				webviewPanel.webview.postMessage({
 					command: "apiKeyStatusUpdate",
 					apiKey: apiKey,
 				});
 			}
-		});
+		};
+		eventManager.on("apiKeyStatusUpdate", apiKeyStatusUpdateListener);
 
 		// 當 panel 關閉時清除引用
 		webviewPanel.onDidDispose(
 			() => {
 					webviewPanel = undefined;
+					// 取消 eventManager 的事件監聽
+					eventManager.off("apiKeyStatusUpdate", apiKeyStatusUpdateListener);
+					console.log('Roo: eventManager apiKeyStatusUpdate listener disposed.'); // 添加日誌
 			},
 			null,
 			context.subscriptions
