@@ -27,7 +27,7 @@ class ApiKeyManager {
       const storedStatusJson = await this.context.secrets.get(keyStatusId);
       let status: 'available' | 'cooling_down' | 'disabled' = 'available';
       let coolingDownUntil: number | undefined = undefined;
-      let usedHistory: { date: number; rate: number }[] = []; // 新增：初始化 usedHistory
+      let usedHistory: { date: number; rate: number; serverCurrentTime?: number }[] = []; // 新增：初始化 usedHistory
 
       if (storedStatusJson) {
         try {
@@ -137,7 +137,7 @@ class ApiKeyManager {
     return Array.from(this.keys.values());
   }
 
-  public async addKeyHistoryEntry(key: string, entry: { date: number; rate: number }): Promise<void> {
+  public async addKeyHistoryEntry(key: string, entry: { date: number; rate: number; serverCurrentTime?: number }): Promise<void> {
     const apiKey = this.keys.get(key);
     if (apiKey) {
       if (!apiKey.usedHistory) {

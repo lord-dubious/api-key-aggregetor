@@ -156,7 +156,8 @@ export default function createProxyRouter(
         if (apiKey) {
           await apiKeyManager.addKeyHistoryEntry(apiKey.key, {
             date: Date.now(),
-            rate: 15
+            rate: 15,
+            serverCurrentTime: Date.now(), // 新增：記錄伺服器當前時間
           }); // 暫定 rate 為 1
         }
         res.end(); // 结束响应
@@ -172,7 +173,8 @@ export default function createProxyRouter(
         if (apiKey) {
           await apiKeyManager.addKeyHistoryEntry(apiKey.key, {
             date: Date.now(),
-            rate: 15
+            rate: 15,
+            serverCurrentTime: Date.now(), // 新增：記錄伺服器當前時間
           }); // 暫定 rate 為 15
         }
         res.json(forwardResult.response);
