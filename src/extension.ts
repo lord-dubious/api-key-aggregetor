@@ -1,10 +1,9 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
-import * as path from 'path'; // 引入 path 模組
+import * as http from 'http';
 import * as fs from 'fs';     // 引入 fs 模組
 import express from 'express';
-import http from 'http'; // Import http module
 import config from './server/config'; // Import config from the copied server code
 import createProxyRouter from './server/routes/proxy'; // Import the proxy router function
 import errorHandler from './server/middlewares/errorHandler'; // Import error handler middleware
@@ -14,10 +13,13 @@ import GoogleApiForwarder from './server/core/GoogleApiForwarder'; // Import Goo
 import { StreamHandler } from './server/core/StreamHandler'; // Import StreamHandler
 // We might not need loggerMiddleware directly in extension.ts, but the errorHandler uses the logger.
 // Let's keep the import for now or ensure the logger is accessible.
-// import { loggerMiddleware } from './server/middlewares/logger';
+import { logger, loggerMiddleware } from "./server/middlewares/logger"; // 引入 logger 和 loggerMiddleware
+import { eventManager, RequestStatus } from "./server/core/EventManager"; // 引入 eventManager 和 RequestStatus
+import { ApiKey } from "./server/types/ApiKey"; // 引入 ApiKey 介面
 
 let server: http.Server | undefined; // Declare server variable to manage its lifecycle
 let apiKeyManager: ApiKeyManager; // Declare apiKeyManager variable to be accessible in commands
+let webviewPanel: vscode.WebviewPanel | undefined; // 新增：保存 webviewPanel 引用
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -35,32 +37,50 @@ export async function activate(context: vscode.ExtensionContext) {
 	// 使用 SecretStorage 读取 API Keys
 	const storedKeyIdsJson = await context.secrets.get("geminiApiKeysIds");
 	const storedKeyIds: string[] = storedKeyIdsJson ? JSON.parse(storedKeyIdsJson) : [];
-	const apiKeys: string[] = [];
+	const initialApiKeys: ApiKey[] = [];
 
 	for (const keyId of storedKeyIds) {
 		const apiKey = await context.secrets.get(keyId);
 		if (apiKey) {
-			apiKeys.push(apiKey);
+			initialApiKeys.push({
+				key: apiKey,
+				keyId: keyId,
+				// status, coolingDownUntil, usedHistory 將由 ApiKeyManager 從持久化儲存中載入
+				status: "available", // 這裡只是初始值，實際狀態會在 ApiKeyManager.loadKeys 中被覆蓋
+				currentRequests: 0,
+				lastUsed: undefined,
+				usedHistory: [], // 這裡只是初始值，實際歷史會在 ApiKeyManager.loadKeys 中被覆蓋
+			});
 		}
 	}
 
-	if (apiKeys.length === 0) {
+	if (initialApiKeys.length === 0) {
 		vscode.window.showWarningMessage('No API keys found. Please run "Gemini: Add API Key" command to add keys.');
 	}
 
-	apiKeyManager = new ApiKeyManager(apiKeys); // Assign to the variable declared outside
+	// 傳遞 eventManager 和 context 給 ApiKeyManager
+	apiKeyManager = new ApiKeyManager(
+	  initialApiKeys,
+	  eventManager,
+	  context
+	); // 傳遞 context
+	await apiKeyManager.loadKeys(initialApiKeys); // 確保在啟動時載入持久化狀態
+
 	const googleApiForwarder = new GoogleApiForwarder();
 	const streamHandler = new StreamHandler();
 	const requestDispatcher = new RequestDispatcher(apiKeyManager);
 
 	// Create the proxy router
-	const proxyRouter = createProxyRouter(apiKeyManager, requestDispatcher, googleApiForwarder, streamHandler);
+	const proxyRouter = createProxyRouter(apiKeyManager, requestDispatcher, googleApiForwarder, streamHandler, eventManager );
 
 	// Integrate JSON body parser middleware
 	app.use(express.json({ limit: '8mb' }));
 
 	// Integrate proxy router
 	app.use('/', proxyRouter);
+
+	// 使用 loggerMiddleware
+  app.use(loggerMiddleware);
 
 	// Integrate unified error handling middleware (should be after routes)
 	app.use(errorHandler); // Assuming errorHandler is adapted or can access necessary dependencies
@@ -144,16 +164,24 @@ console.log('Roo: After registering runserver command');
 			vscode.window.showInformationMessage(`Gemini API Key "${keyId}" added.`);
 
 			// Reload keys in ApiKeyManager
-			const addedKeyIdsJson = await context.secrets.get("geminiApiKeysIds");
-			const addedKeyIds: string[] = addedKeyIdsJson ? JSON.parse(addedKeyIdsJson) : [];
-			const addedApiKeys: string[] = [];
-			for (const id of addedKeyIds) {
+			const updatedApiKeys: ApiKey[] = [];
+			const currentStoredKeyIdsJson = await context.secrets.get("geminiApiKeysIds");
+			const currentStoredKeyIds: string[] = currentStoredKeyIdsJson ? JSON.parse(currentStoredKeyIdsJson) : [];
+
+			for (const id of currentStoredKeyIds) {
 				const key = await context.secrets.get(id);
 				if (key) {
-					addedApiKeys.push(key);
+					updatedApiKeys.push({
+						key: key,
+						keyId: id,
+						status: "available",
+						currentRequests: 0,
+						lastUsed: undefined,
+						usedHistory: [],
+					});
 				}
 			}
-			apiKeyManager.loadKeys(addedApiKeys);
+			await apiKeyManager.loadKeys(updatedApiKeys);
 			console.log('API keys reloaded after adding a key.');
 
 		} else {
@@ -228,17 +256,29 @@ console.log('Roo: After registering runserver command');
 
 			vscode.window.showInformationMessage(`Gemini API Key "${keyIdToDelete}" deleted.`);
 
+			// Also delete the status data for the deleted key
+			await context.secrets.delete(`apiKeyStatus_${keyIdToDelete}`);
+
+			vscode.window.showInformationMessage(
+				`API Key ${keyIdToDelete} deleted successfully!`
+			);
+
 			// Reload keys in ApiKeyManager
-			const deletedKeyIdsJson = await context.secrets.get("geminiApiKeysIds");
-			const deletedKeyIds: string[] = deletedKeyIdsJson ? JSON.parse(deletedKeyIdsJson) : [];
-			const deletedApiKeys: string[] = [];
-			for (const id of deletedKeyIds) {
+			const updatedApiKeys: ApiKey[] = [];
+			for (const id of updatedKeyIds) {
 				const key = await context.secrets.get(id);
 				if (key) {
-					deletedApiKeys.push(key);
+					updatedApiKeys.push({
+						key: key,
+						keyId: id,
+						status: "available",
+						currentRequests: 0,
+						lastUsed: undefined,
+						usedHistory: [],
+					});
 				}
 			}
-			apiKeyManager.loadKeys(deletedApiKeys);
+			await apiKeyManager.loadKeys(updatedApiKeys);
 			console.log('API keys reloaded after deleting a key.');
 
 		} else {
@@ -279,16 +319,21 @@ console.log('Roo: After registering runserver command');
 				vscode.window.showInformationMessage(`Gemini API Key "${keyIdToModify}" modified.`);
 
 				// Reload keys in ApiKeyManager
-				const modifiedKeyIdsJson = await context.secrets.get("geminiApiKeysIds");
-				const modifiedKeyIds: string[] = modifiedKeyIdsJson ? JSON.parse(modifiedKeyIdsJson) : [];
-				const modifiedApiKeys: string[] = [];
-				for (const id of modifiedKeyIds) {
+				const updatedApiKeys: ApiKey[] = [];
+				for (const id of existingKeyIds) {
 					const key = await context.secrets.get(id);
 					if (key) {
-						modifiedApiKeys.push(key);
+						updatedApiKeys.push({
+							key: key,
+							keyId: id,
+							status: "available",
+							currentRequests: 0,
+							lastUsed: undefined,
+							usedHistory: [],
+						});
 					}
 				}
-				apiKeyManager.loadKeys(modifiedApiKeys);
+				await apiKeyManager.loadKeys(updatedApiKeys);
 				console.log('API keys reloaded after modifying a key.');
 
 			} else {
@@ -301,7 +346,12 @@ console.log('Roo: After registering runserver command');
 	context.subscriptions.push(modifyApiKeyCommand);
 
 	const openPanelCommand = vscode.commands.registerCommand('geminiAggregator-dev.openPanel', () => {
-		const panel = vscode.window.createWebviewPanel(
+		if (webviewPanel) {
+			webviewPanel.reveal(vscode.ViewColumn.One);
+			return;
+		}
+	
+		webviewPanel = vscode.window.createWebviewPanel(
 			'geminiAggregatorPanel', // 識別 Webview Panel 的類型
 			'Gemini Aggregator Panel', // Panel 的標題
 			vscode.ViewColumn.One, // 顯示 Panel 的編輯器欄位
@@ -311,6 +361,7 @@ console.log('Roo: After registering runserver command');
 				localResourceRoots: [vscode.Uri.joinPath(context.extensionUri, 'dist', 'webview-ui')]
 			}
 		);
+		const panel = webviewPanel;
 
 		// 獲取打包後資源的 URI
 		const webviewAppPath = vscode.Uri.joinPath(context.extensionUri, 'dist', 'webview-ui', 'bundle.js');
@@ -367,35 +418,35 @@ console.log('Roo: After registering runserver command');
 					// 	}
 					// 	return;
 					case 'getApiKeys(request)':
-						// 獲取 API Keys 並發送到 Webview
-						interface Key {
-							keyId: string;
-							apiKey:string
-						}
-
-						const existingKeyIdsJson = await context.secrets.get("geminiApiKeysIds");
-						const existingKeyIds: string[] = existingKeyIdsJson ? JSON.parse(existingKeyIdsJson) : [];
-
-						// Sort keys numerically based on the number in keyId (e.g., key1, key2, key10)
-						existingKeyIds.sort((a, b) => {
-							const numA = parseInt(a.replace('key', ''), 10);
-							const numB = parseInt(b.replace('key', ''), 10);
-							return numA - numB;
+						// 獲取所有 API Keys 的當前狀態並發送到 Webview
+						const allKeys = await apiKeyManager.getAllKeys();
+						panel.webview.postMessage({
+							command: "getApiKeys(response)",
+							keys: allKeys,
 						});
-
-						let keys: Key[] = [];
-
-						for (const keyId of existingKeyIds) {
-							const apiKey = await context.secrets.get(keyId);
-							if (apiKey) {
-								keys.push({ keyId, apiKey });
-							}
-						}
-						panel.webview.postMessage({ command: 'getApiKeys(response)', keys });
 						return;
 				}
 			},
 			undefined,
+			context.subscriptions
+		);
+
+		// 監聽 emit
+		eventManager.on("apiKeyStatusUpdate", (apiKey: ApiKey) => {
+			if (panel) {
+				panel.webview.postMessage({
+					command: "apiKeyStatusUpdate",
+					apiKey: apiKey,
+				});
+			}
+		});
+
+		// 當 panel 關閉時清除引用
+		webviewPanel.onDidDispose(
+			() => {
+					webviewPanel = undefined;
+			},
+			null,
 			context.subscriptions
 		);
 	});
