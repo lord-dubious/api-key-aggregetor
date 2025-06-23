@@ -6,7 +6,7 @@ interface TimestampDisplayProps {
 
 const formatTimeAgo = (date: Date): string => {
   const now = new Date();
-  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+  const seconds = Math.max(0, Math.floor((now.getTime() - date.getTime()) / 1000));
 
   if (seconds < 60) {
     return `${seconds} sec ago`;
@@ -37,6 +37,11 @@ const formatTimeAgo = (date: Date): string => {
 };
 
 const TimestampDisplay: React.FC<TimestampDisplayProps> = ({ date }) => {
+  // test is date is a valid Date object
+  if (!(date instanceof Date) || isNaN(date.getTime())) {
+    return <span>Invalid date</span>;
+  }
+
   const [displayTime, setDisplayTime] = useState(formatTimeAgo(date));
 
   useEffect(() => {

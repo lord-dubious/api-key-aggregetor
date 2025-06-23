@@ -442,6 +442,16 @@ console.log('Roo: After registering runserver command');
 		};
 		eventManager.on("apiKeyStatusUpdate", apiKeyStatusUpdateListener);
 
+		const requestUpdateListener = (requestStatus: RequestStatus) => {
+			if (webviewPanel) { // 使用全域 webviewPanel 變數
+				webviewPanel.webview.postMessage({
+					command: "requestUpdate",
+					requestStatus: requestStatus,
+				});
+			}
+		};
+		eventManager.on("requestUpdate", requestUpdateListener);
+
 		// 當 panel 關閉時清除引用
 		webviewPanel.onDidDispose(
 			() => {

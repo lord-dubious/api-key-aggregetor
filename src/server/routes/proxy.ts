@@ -31,7 +31,6 @@ export default function createProxyRouter(
         status: 'pending',
         startTime: Date.now(),
     };
-    eventManager.emitRequestUpdate(requestStatus); // 發送 pending 狀態
 
     try {
       // 从正则表达式捕获组中提取 modelId 和 methodName
@@ -62,6 +61,7 @@ export default function createProxyRouter(
       apiKey = await requestDispatcher.selectApiKey();
       if (apiKey) {
         requestStatus.keyId = apiKey.keyId; // 更新 keyId
+        eventManager.emitRequestUpdate(requestStatus); // 發送 pending 狀態
         // 不需要再次發送 requestUpdate，因為 pending 狀態已經發送，後續會直接更新為 success/failed/cooling_down
       }
       console.log('ProxyRoute: requestDispatcher.selectApiKey() returned:', apiKey ? 'a key' : 'no key');

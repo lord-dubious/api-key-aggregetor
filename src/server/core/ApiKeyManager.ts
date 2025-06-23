@@ -35,9 +35,12 @@ class ApiKeyManager {
           status = storedStatus.status || 'available';
           coolingDownUntil = storedStatus.coolingDownUntil;
           usedHistory = storedStatus.usedHistory || []; // 新增：載入 usedHistory
+          console.log(`ApiKeyManager: Key ${keyObj.keyId} 載入的 usedHistory:`, usedHistory); // 添加日誌
         } catch (e) {
           console.error(`ApiKeyManager: 解析 Key ${keyObj.keyId} 狀態失敗:`, e);
         }
+      } else {
+        console.log(`ApiKeyManager: Key ${keyObj.keyId} 沒有找到持久化狀態，usedHistory 初始化為空。`); // 添加日誌
       }
 
       this.keys.set(keyObj.key, {

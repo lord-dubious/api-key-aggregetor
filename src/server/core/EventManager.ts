@@ -29,6 +29,7 @@ export class EventManager extends EventEmitter { // 導出 EventManager 類別
    * @param requestStatus 更新後的 RequestStatus 物件。
    */
   emitRequestUpdate(requestStatus: RequestStatus) {
+    console.log("Emitting request update:", requestStatus);
     this.emit("requestUpdate", requestStatus);
   }
 }

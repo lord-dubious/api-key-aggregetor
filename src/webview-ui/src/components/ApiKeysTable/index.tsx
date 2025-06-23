@@ -8,18 +8,19 @@ import style from "./style.module.css";
 // create component via class
 class KeyComponent extends React.Component<{
   keyData: ApiKeyStatus;
+  status: string;
 }> {
   render() {
-    const { keyData } = this.props;
+    const { keyData, status } = this.props;
     return (
-      <tr>
+      <tr className={status == "pending" ? style.scanner : ""}>
         <td>{keyData.keyId}</td>
         <td>
-          <code>{"*".repeat(Math.max(0, keyData.apiKey.length - 4)) + keyData.apiKey.slice(-4)}</code>
+          <code>{"*".repeat(Math.max(0, keyData.key.length - 4)) + keyData.key.slice(-4)}</code>
         </td>
         <td>
           {keyData.usedHistory.length > 0 ? (
-            <TimestampDisplay date={keyData.usedHistory[0].date} />
+            <TimestampDisplay date={new Date(keyData.usedHistory[keyData.usedHistory.length - 1].date)} />
           ) : (
             "Never used"
           )}
@@ -35,9 +36,10 @@ class KeyComponent extends React.Component<{
 
 export class ApiKeysTable extends React.Component<{
   keys: ApiKeyStatus[];
+  status: { [key: string]: string };
 }> {
   render() {
-    const { keys } = this.props;
+    const { keys, status} = this.props;
 
     return (
       <div>
@@ -48,13 +50,13 @@ export class ApiKeysTable extends React.Component<{
                 <th>Key ID</th>
                 <th>API Key</th>
                 <th>Last Called</th>
-                <th>Call Status</th>
                 <th>Status</th>
+                <th>Rate Limits</th>
               </tr>
             </thead>
             <tbody>
               {keys.map((apiKey, i) => (
-                <KeyComponent key={i} keyData={apiKey} />
+                <KeyComponent key={i} keyData={apiKey} status={status[apiKey.keyId]} />
               ))}
             </tbody>
           </table>

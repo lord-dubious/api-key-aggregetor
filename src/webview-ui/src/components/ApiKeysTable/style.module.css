@@ -14,3 +14,36 @@
   background-color: #0a0a0a27;
 }
 
+.scanner {
+  /* 1. 設定最底層的背景顏色 */
+  /* background-color: #85858569; */
+
+  /* 2. 設定上層的漸層光束作為背景圖 */
+  background-image: linear-gradient(to right,
+      transparent 0%,
+      rgba(0, 255, 0, 0.301) 50%,
+      transparent 100%);
+
+  /* 3. 確保光束不重複 */
+  background-repeat: no-repeat;
+
+  /* 4. 設定光束的大小 (寬度為容器的 20%) */
+  background-size: 20% 100%;
+
+  /* 5. 應用下面定義的動畫 */
+  animation: single-scan 1.7s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+/* 定義動畫：移動背景位置 */
+@keyframes single-scan {
+
+  /* 開始時，光束在容器左側外面 */
+  0% {
+    background-position: -30% 0;
+  }
+
+  /* 結束時，光束移動到容器右側外面 */
+  100% {
+    background-position: 130% 0;
+  }
+}
