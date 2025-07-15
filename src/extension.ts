@@ -401,22 +401,6 @@ console.log('Roo: After registering runserver command');
 		panel.webview.onDidReceiveMessage(
 			async message => {
 				switch (message.command) {
-					// case 'getGlobalState':
-					// 	const value = context.globalState.get(message.key);
-					// 	panel.webview.postMessage({ command: 'globalStateValue', key: message.key, value: value });
-					// 	return;
-					// case 'updateGlobalState':
-					// 	await context.globalState.update(message.key, message.value);
-					// 	vscode.window.showInformationMessage(`Global State 已更新: ${message.key} = ${message.value}`);
-					// 	return;
-					// case 'executeCommand':
-					// 	try {
-					// 		const result = await vscode.commands.executeCommand(message.commandName, ...(message.args || []));
-					// 		panel.webview.postMessage({ command: 'commandResult', result: result, success: true });
-					// 	} catch (error: any) {
-					// 		panel.webview.postMessage({ command: 'commandResult', error: error.message, success: false });
-					// 	}
-					// 	return;
 					case 'getApiKeys(request)':
 						// 獲取所有 API Keys 的當前狀態並發送到 Webview
 						const allKeys = await apiKeyManager.getAllKeys();
@@ -424,6 +408,24 @@ console.log('Roo: After registering runserver command');
 							command: "getApiKeys(response)",
 							keys: allKeys,
 						});
+						return;
+					case 'getProxies(request)':
+						const storedProxiesJson = await context.secrets.get("geminiProxies");
+						const storedProxies = storedProxiesJson ? JSON.parse(storedProxiesJson) : [];
+						panel.webview.postMessage({
+							command: "getProxies(response)",
+							proxies: storedProxies,
+						});
+						return;
+					case 'updateProxies':
+						await context.secrets.store("geminiProxies", JSON.stringify(message.proxies));
+						apiKeyManager.setProxies(message.proxies);
+						return;
+					case 'updateApiKeyProxy':
+						await apiKeyManager.updateApiKeyProxy(message.keyId, message.proxy);
+						return;
+					case 'updateRotatingProxy':
+						apiKeyManager.setRotatingProxy(message.isRotatingProxy);
 						return;
 				}
 			},

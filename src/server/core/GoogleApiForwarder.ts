@@ -17,10 +17,20 @@ export class GoogleApiError extends Error {
   }
 }
 
+import { HttpsProxyAgent } from 'https-proxy-agent';
+
 class GoogleApiForwarder {
   async forwardRequest(modelId: string, methodName: string, requestBody: any, apiKey: ApiKey): Promise<{ response?: any, stream?: AsyncIterable<GenerateContentResponse>, error?: GoogleApiError }> {
-    const genAI = new GoogleGenerativeAI(apiKey.key);
-    const generativeModel = genAI.getGenerativeModel({ model: modelId });
+    const generativeAi = new GoogleGenerativeAI(apiKey.key);
+    const generativeModel = generativeAi.getGenerativeModel({
+      model: modelId,
+    });
+
+    if (apiKey.proxy) {
+      const agent = new HttpsProxyAgent(apiKey.proxy);
+      // @ts-ignore
+      generativeModel.requestOptions = { agent };
+    }
 
     try {
       let result;

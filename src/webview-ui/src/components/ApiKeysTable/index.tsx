@@ -9,14 +9,29 @@ import style from "./style.module.css";
 class KeyComponent extends React.Component<{
   keyData: ApiKeyStatus;
   status: string;
+  proxies: string[];
+  onProxyChange: (keyId: string, proxy: string) => void;
 }> {
   render() {
-    const { keyData, status } = this.props;
+    const { keyData, status, proxies, onProxyChange } = this.props;
     return (
       <tr className={status == "pending" ? style.scanner : ""}>
         <td>{keyData.keyId}</td>
         <td>
           <code>{"*".repeat(Math.max(0, keyData.key.length - 4)) + keyData.key.slice(-4)}</code>
+        </td>
+        <td>
+          <select
+            value={keyData.proxy || ""}
+            onChange={(e) => onProxyChange(keyData.keyId, e.target.value)}
+          >
+            <option value="">No proxy</option>
+            {proxies.map((proxy) => (
+              <option key={proxy} value={proxy}>
+                {proxy}
+              </option>
+            ))}
+          </select>
         </td>
         <td>
           {keyData.usedHistory.length > 0 ? (
@@ -37,9 +52,11 @@ class KeyComponent extends React.Component<{
 export class ApiKeysTable extends React.Component<{
   keys: ApiKeyStatus[];
   status: { [key: string]: string };
+  proxies: string[];
+  onProxyChange: (keyId: string, proxy: string) => void;
 }> {
   render() {
-    const { keys, status} = this.props;
+    const { keys, status, proxies, onProxyChange } = this.props;
 
     return (
       <div>
@@ -49,6 +66,7 @@ export class ApiKeysTable extends React.Component<{
               <tr>
                 <th>Key ID</th>
                 <th>API Key</th>
+                <th>Proxy</th>
                 <th>Last Called</th>
                 <th>Status</th>
                 <th>Rate Limits</th>
@@ -56,7 +74,13 @@ export class ApiKeysTable extends React.Component<{
             </thead>
             <tbody>
               {keys.map((apiKey, i) => (
-                <KeyComponent key={i} keyData={apiKey} status={status[apiKey.keyId]} />
+                <KeyComponent
+                  key={i}
+                  keyData={apiKey}
+                  status={status[apiKey.keyId]}
+                  proxies={proxies}
+                  onProxyChange={onProxyChange}
+                />
               ))}
             </tbody>
           </table>

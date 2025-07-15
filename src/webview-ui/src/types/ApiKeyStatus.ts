@@ -29,4 +29,8 @@ export interface ApiKeyStatus {
    * 當前使用此 Key 處理的並發請求數
    */
   currentRequests?: number;
+  /**
+   * 代理服务器地址
+   */
+  proxy?: string;
 }

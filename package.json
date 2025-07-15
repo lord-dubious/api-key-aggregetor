@@ -64,40 +64,44 @@
           "description": "Port to be used by the proxy server."
         }
       }
-    
     }
   },
-
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src",
-    "test": "vscode-test"
+    "test": "vscode-test --no-sandbox"
   },
   "devDependencies": {
     "@types/express": "^5.0.1",
     "@types/mocha": "^10.0.10",
     "@types/node": "20.x",
+    "@types/node-fetch": "^2.6.12",
     "@types/vscode": "^1.97.0",
     "@typescript-eslint/eslint-plugin": "^8.28.0",
     "@typescript-eslint/parser": "^8.28.0",
     "@vscode/test-cli": "^0.0.10",
     "@vscode/test-electron": "^2.4.1",
     "eslint": "^9.23.0",
-    "typescript": "^5.8.2"
+    "typescript": "^5.8.3"
   },
   "dependencies": {
     "@google/generative-ai": "^0.15.0",
-    "dotenv": "^16.4.5",
+    "dotenv": "^16.6.1",
     "express": "^4.19.2",
+    "google-auth-library": "^10.1.0",
+    "https-proxy-agent": "^7.0.6",
+    "ngrok": "^5.0.0-beta.2",
+    "node-fetch": "^2.7.0",
     "pino": "^9.2.0",
     "pino-http": "^10.1.0",
-    "pino-pretty": "^11.2.1"
+    "pino-pretty": "^11.2.1",
+    "proxy": "^2.2.0"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/JamzYang/api-key-aggregetor"
-}
+  }
 }

@@ -29,12 +29,14 @@ class ApiKeyManager {
       let coolingDownUntil: number | undefined = undefined;
       let usedHistory: { date: number; rate: number; serverCurrentTime?: number }[] = []; // 新增：初始化 usedHistory
 
+      let proxy: string | undefined = undefined;
       if (storedStatusJson) {
         try {
           const storedStatus = JSON.parse(storedStatusJson);
           status = storedStatus.status || 'available';
           coolingDownUntil = storedStatus.coolingDownUntil;
           usedHistory = storedStatus.usedHistory || []; // 新增：載入 usedHistory
+          proxy = storedStatus.proxy;
           console.log(`ApiKeyManager: Key ${keyObj.keyId} 載入的 usedHistory:`, usedHistory); // 添加日誌
         } catch (e) {
           console.error(`ApiKeyManager: 解析 Key ${keyObj.keyId} 狀態失敗:`, e);
@@ -50,7 +52,8 @@ class ApiKeyManager {
         coolingDownUntil: coolingDownUntil, // 使用持久化的冷卻時間
         currentRequests: keyObj.currentRequests || 0,
         lastUsed: keyObj.lastUsed,
-        usedHistory: usedHistory // 新增：設置 usedHistory
+        usedHistory: usedHistory, // 新增：設置 usedHistory
+        proxy: proxy,
       });
       this.eventManager.emitApiKeyStatusUpdate(this.keys.get(keyObj.key)!); // 發送初始狀態
     }
@@ -62,10 +65,34 @@ class ApiKeyManager {
     const statusData = {
       status: apiKey.status,
       coolingDownUntil: apiKey.coolingDownUntil,
-      usedHistory: apiKey.usedHistory // 新增：儲存 usedHistory
+      usedHistory: apiKey.usedHistory, // 新增：儲存 usedHistory
+      proxy: apiKey.proxy,
     };
     await this.context.secrets.store(keyStatusId, JSON.stringify(statusData));
     console.log(`ApiKeyManager: Key ${apiKey.keyId} 狀態和歷史已持久化。`);
+  }
+
+  public async updateApiKeyProxy(keyId: string, proxy: string): Promise<void> {
+    for (const apiKey of this.keys.values()) {
+      if (apiKey.keyId === keyId) {
+        apiKey.proxy = proxy;
+        await this.saveKeyStatus(apiKey);
+        this.eventManager.emitApiKeyStatusUpdate(apiKey);
+        break;
+      }
+    }
+  }
+
+  private isRotatingProxy: boolean = false;
+  private proxies: string[] = [];
+  private proxyRoundRobinIndex: number = 0;
+
+  public setRotatingProxy(isRotatingProxy: boolean): void {
+    this.isRotatingProxy = isRotatingProxy;
+  }
+
+  public setProxies(proxies: string[]): void {
+    this.proxies = proxies;
   }
 
   getAvailableKey(): ApiKey | null {
@@ -81,6 +108,11 @@ class ApiKeyManager {
     // 简单轮询策略
     const selectedKey = availableKeys[this.roundRobinIndex % availableKeys.length];
     this.roundRobinIndex = (this.roundRobinIndex + 1) % availableKeys.length;
+
+    if (this.isRotatingProxy && this.proxies.length > 0) {
+      selectedKey.proxy = this.proxies[this.proxyRoundRobinIndex % this.proxies.length];
+      this.proxyRoundRobinIndex = (this.proxyRoundRobinIndex + 1) % this.proxies.length;
+    }
 
     // 更新 lastUsed 並發送事件
     selectedKey.lastUsed = Date.now();

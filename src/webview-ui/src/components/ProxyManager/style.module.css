@@ -1,0 +1,29 @@
+.proxyManager {
+  margin-top: 20px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.proxyInput {
+  display: flex;
+  margin-bottom: 10px;
+}
+
+.proxyInput input {
+  flex-grow: 1;
+  margin-right: 10px;
+}
+
+.proxyList {
+  list-style-type: none;
+  padding: 0;
+}
+
+.proxyList li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 0;
+  border-bottom: 1px solid #eee;
+}

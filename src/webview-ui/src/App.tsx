@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { ApiKey } from "./types/ApiKey";
 import { ApiKeyStatus } from "./types/ApiKeyStatus";
 import { ApiKeysTable } from "./components/ApiKeysTable";
+import { ProxyManager } from "./components/ProxyManager";
 
 declare const acquireVsCodeApi: () => {
   postMessage: (message: any) => void;
@@ -15,6 +16,7 @@ function App() {
   const [apiKeys, setApiKeys] = useState<ApiKeyStatus[]>([]);
   const [keysStatus, setKeysStatus] = useState<{[key: string]: string;}>();
   const [isLoading, setIsLoading] = useState(true);
+  const [proxies, setProxies] = useState<string[]>([]);
 
   useEffect(() => {
     console.log("keystatus:", keysStatus);
@@ -23,6 +25,9 @@ function App() {
   useEffect(() => {
     vscode.postMessage({
       command: "getApiKeys(request)",
+    });
+    vscode.postMessage({
+      command: "getProxies(request)",
     });
   }, []);
 
@@ -117,6 +122,9 @@ function App() {
 
           console.log("處理請求狀態更新")
           break;
+        case "getProxies(response)":
+          setProxies(message.proxies);
+          break;
         default:
           console.warn("Unhandled message from VS Code:", message);
           break;
@@ -131,14 +139,61 @@ function App() {
     };
   }, []);
 
+  const handleProxiesChange = (newProxies: string[]) => {
+    setProxies(newProxies);
+    vscode.postMessage({
+      command: "updateProxies",
+      proxies: newProxies,
+    });
+  };
+
+  const [isRotatingProxy, setIsRotatingProxy] = useState(false);
+
+  const handleToggleRotatingProxy = () => {
+    const newIsRotatingProxy = !isRotatingProxy;
+    setIsRotatingProxy(newIsRotatingProxy);
+    vscode.postMessage({
+      command: "updateRotatingProxy",
+      isRotatingProxy: newIsRotatingProxy,
+    });
+  };
+
+  const handleProxyChange = (keyId: string, proxy: string) => {
+    const updatedApiKeys = apiKeys.map((key) =>
+      key.keyId === keyId ? { ...key, proxy } : key
+    );
+    setApiKeys(updatedApiKeys);
+    vscode.postMessage({
+      command: "updateApiKeyProxy",
+      keyId,
+      proxy,
+    });
+  };
+
   return (
     <div>
       <h1>API Key Aggregator Manage Panel</h1>
+      <div>
+        <label>
+          <input
+            type="checkbox"
+            checked={isRotatingProxy}
+            onChange={handleToggleRotatingProxy}
+          />
+          Enable Rotating Proxy
+        </label>
+      </div>
+      <ProxyManager proxies={proxies} onProxiesChange={handleProxiesChange} />
       <h2>API Keys</h2>
       {isLoading ? (
         <p>Loading API keys...</p>
       ) : (
-        <ApiKeysTable keys={apiKeys} status={keysStatus ?? {}}/>
+        <ApiKeysTable
+          keys={apiKeys}
+          status={keysStatus ?? {}}
+          proxies={proxies}
+          onProxyChange={handleProxyChange}
+        />
       )}
     </div>
   );
