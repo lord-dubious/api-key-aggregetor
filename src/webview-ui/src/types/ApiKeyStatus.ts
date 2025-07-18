@@ -30,7 +30,15 @@ export interface ApiKeyStatus {
    */
   currentRequests?: number;
   /**
-   * 代理服务器地址
+   * 代理服务器地址 (Legacy field)
    */
   proxy?: string;
+  /**
+   * ID of the assigned proxy server from the proxy pool
+   */
+  assignedProxyId?: string;
+  /**
+   * Timestamp when the proxy was assigned
+   */
+  proxyAssignedAt?: number;
 }

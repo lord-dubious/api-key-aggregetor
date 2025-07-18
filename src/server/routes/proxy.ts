@@ -4,7 +4,7 @@ import RequestDispatcher from '../core/RequestDispatcher';
 import GoogleApiForwarder, { GoogleApiError } from '../core/GoogleApiForwarder';
 import { StreamHandler } from '../core/StreamHandler';
 import config from '../config';
-import { GenerateContentResponse } from '@google/generative-ai';
+// Removed import of GenerateContentResponse as we're now using @google/genai
 import { eventManager, RequestStatus, EventManager } from "../core/EventManager"; // 引入 eventManager, RequestStatus 和 EventManager
 
 // 修改为导出一个函数，接受依赖作为参数

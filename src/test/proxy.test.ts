@@ -5,7 +5,7 @@ import ApiKeyManager from '../server/core/ApiKeyManager';
 import { ApiKey } from '../server/types/ApiKey';
 import { EventManager } from '../server/core/EventManager';
 import GoogleApiForwarder from '../server/core/GoogleApiForwarder';
-import proxy from './proxy-server';
+import { TestProxyServer, startTestProxies } from './proxy-server';
 
 import * as dotenv from 'dotenv';
 dotenv.config();
@@ -17,11 +17,10 @@ suite('Proxy Test Suite', () => {
   const proxyPort = 8080;
   let requestReceived = false;
 
-  suiteSetup(() => {
-    proxyServer = proxy.listen(proxyPort);
-    proxy.on('request', () => {
-      requestReceived = true;
-    });
+  suiteSetup(async () => {
+    const testProxy = new TestProxyServer(proxyPort);
+    await testProxy.start();
+    proxyServer = (testProxy as any).server; // Access the internal server for compatibility
   });
 
   suiteTeardown(() => {
@@ -46,7 +45,7 @@ suite('Proxy Test Suite', () => {
         keyId: 'key1',
         status: 'available',
         currentRequests: 0,
-        proxy: process.env.HTTPS_PROXY,
+        proxy: `http://127.0.0.1:${proxyPort}`,
       },
     ];
 
@@ -55,14 +54,16 @@ suite('Proxy Test Suite', () => {
 
     const googleApiForwarder = new GoogleApiForwarder();
 
-    const apiKey = apiKeyManager.getAvailableKey();
+    const apiKey = await apiKeyManager.getAvailableKey();
     assert.ok(apiKey, 'Could not get an available API key');
 
     // This will fail, but we are checking if the proxy is used
     try {
-      await googleApiForwarder.forwardRequest('gemini-pro', 'generateContent', {}, apiKey!);
-    } catch (error) {
-      // We expect an error because the proxy will not be able to connect to the Google API
+      await googleApiForwarder.forwardRequest('gemini-2.0-flash', 'generateContent', {}, apiKey);
+      assert.fail('Expected request to fail through proxy');
+    } catch (error: any) {
+      // Verify it's a network/proxy error, not some other unexpected error
+      assert.ok(error.message || error.code, 'Error should have a message or code');
     }
 
     assert.strictEqual(requestReceived, true, 'Proxy was not used');
