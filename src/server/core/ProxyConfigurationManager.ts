@@ -1,5 +1,12 @@
 import { ProxyConfiguration, PROXY_STORAGE_KEYS } from '../types/Proxy';
+import { 
+  RotatingProxyConfig, 
+  RotatingProxyValidation, 
+  ROTATING_PROXY_STORAGE_KEYS,
+  ROTATING_PROXY_CONSTANTS 
+} from '../types/RotatingProxy';
 import * as vscode from 'vscode';
+import config from '../config';
 
 /**
  * Manages proxy configuration settings and persistence
@@ -212,5 +219,197 @@ export class ProxyConfigurationManager {
   public async isConfigurationCustomized(): Promise<boolean> {
     const currentConfig = await this.loadConfiguration();
     return JSON.stringify(currentConfig) !== JSON.stringify(this.defaultConfig);
+  }
+
+  // ==================== ROTATING PROXY METHODS ====================
+
+  /**
+   * Get the configured rotating proxy URL
+   */
+  public getRotatingProxy(): string | undefined {
+    return config.ROTATING_PROXY;
+  }
+
+  /**
+   * Check if rotating proxy is enabled
+   */
+  public isRotatingProxyEnabled(): boolean {
+    return config.USE_ROTATING_PROXY;
+  }
+
+  /**
+   * Validate rotating proxy URL format
+   */
+  public validateRotatingProxyUrl(url: string): RotatingProxyValidation {
+    const result: RotatingProxyValidation = {
+      isValid: false,
+      errors: [],
+      warnings: [],
+      hasRotateCredentials: false
+    };
+
+    if (!url || url.trim() === '') {
+      result.errors.push('Rotating proxy URL cannot be empty');
+      return result;
+    }
+
+    try {
+      const parsedUrl = new URL(url);
+      result.parsedUrl = parsedUrl;
+
+      // Check supported protocols
+      const supportedProtocols = ['http:', 'https:', 'socks:', 'socks5:'];
+      if (!supportedProtocols.includes(parsedUrl.protocol)) {
+        result.errors.push(`Unsupported protocol: ${parsedUrl.protocol}. Supported: ${supportedProtocols.join(', ')}`);
+      }
+
+      // Check for hostname
+      if (!parsedUrl.hostname) {
+        result.errors.push('Rotating proxy URL must include a hostname');
+      }
+
+      // Check for port
+      if (!parsedUrl.port) {
+        result.warnings.push('No port specified, using default port for protocol');
+      }
+
+      // Check for rotating credentials pattern
+      if (parsedUrl.username) {
+        result.hasRotateCredentials = ROTATING_PROXY_CONSTANTS.ROTATE_USERNAME_PATTERN.test(parsedUrl.username);
+        
+        if (!result.hasRotateCredentials) {
+          result.warnings.push('Username does not follow rotating proxy pattern (should end with "-rotate")');
+        }
+
+        if (!parsedUrl.password) {
+          result.errors.push('Password is required when username is provided');
+        }
+      }
+
+      // If no errors, mark as valid
+      result.isValid = result.errors.length === 0;
+
+    } catch (error) {
+      result.errors.push(`Invalid URL format: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+
+    return result;
+  }
+
+  /**
+   * Load rotating proxy configuration from storage
+   */
+  public async loadRotatingProxyConfig(): Promise<RotatingProxyConfig> {
+    try {
+      const storedConfigJson = await this.context.secrets.get(ROTATING_PROXY_STORAGE_KEYS.CONFIG);
+      
+      if (storedConfigJson) {
+        const storedConfig = JSON.parse(storedConfigJson);
+        
+        return {
+          enabled: config.USE_ROTATING_PROXY,
+          url: config.ROTATING_PROXY || '',
+          isValid: this.validateRotatingProxyUrl(config.ROTATING_PROXY || '').isValid,
+          lastHealthCheck: storedConfig.lastHealthCheck ? new Date(storedConfig.lastHealthCheck) : undefined,
+          errorCount: storedConfig.errorCount || 0,
+          lastError: storedConfig.lastError,
+          responseTime: storedConfig.responseTime,
+          totalRequests: storedConfig.totalRequests || 0,
+          successfulRequests: storedConfig.successfulRequests || 0,
+          createdAt: storedConfig.createdAt ? new Date(storedConfig.createdAt) : new Date(),
+          updatedAt: storedConfig.updatedAt ? new Date(storedConfig.updatedAt) : new Date()
+        };
+      } else {
+        // Return default configuration
+        return {
+          enabled: config.USE_ROTATING_PROXY,
+          url: config.ROTATING_PROXY || '',
+          isValid: config.ROTATING_PROXY ? this.validateRotatingProxyUrl(config.ROTATING_PROXY).isValid : false,
+          errorCount: 0,
+          totalRequests: 0,
+          successfulRequests: 0,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+      }
+    } catch (error) {
+      console.error('ProxyConfigurationManager: Error loading rotating proxy configuration:', error);
+      
+      // Return default configuration on error
+      return {
+        enabled: false,
+        url: '',
+        isValid: false,
+        errorCount: 0,
+        totalRequests: 0,
+        successfulRequests: 0,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+    }
+  }
+
+  /**
+   * Save rotating proxy configuration to storage
+   */
+  public async saveRotatingProxyConfig(config: RotatingProxyConfig): Promise<void> {
+    try {
+      const storageData = {
+        enabled: config.enabled,
+        url: config.url,
+        errorCount: config.errorCount,
+        totalRequests: config.totalRequests,
+        successfulRequests: config.successfulRequests,
+        lastHealthCheck: config.lastHealthCheck?.toISOString(),
+        lastError: config.lastError,
+        responseTime: config.responseTime,
+        createdAt: config.createdAt.toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      await this.context.secrets.store(
+        ROTATING_PROXY_STORAGE_KEYS.CONFIG,
+        JSON.stringify(storageData)
+      );
+      
+      console.log('ProxyConfigurationManager: Rotating proxy configuration saved');
+    } catch (error) {
+      console.error('ProxyConfigurationManager: Error saving rotating proxy configuration:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update rotating proxy statistics
+   */
+  public async updateRotatingProxyStats(
+    success: boolean, 
+    responseTime?: number, 
+    error?: string
+  ): Promise<void> {
+    try {
+      const config = await this.loadRotatingProxyConfig();
+      
+      config.totalRequests++;
+      if (success) {
+        config.successfulRequests++;
+        config.errorCount = 0; // Reset error count on success
+      } else {
+        config.errorCount++;
+        if (error) {
+          config.lastError = error;
+        }
+      }
+      
+      if (responseTime !== undefined) {
+        config.responseTime = responseTime;
+      }
+      
+      config.updatedAt = new Date();
+      
+      await this.saveRotatingProxyConfig(config);
+    } catch (error) {
+      console.error('ProxyConfigurationManager: Error updating rotating proxy stats:', error);
+    }
   }
 }

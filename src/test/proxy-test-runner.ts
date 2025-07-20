@@ -1,4 +1,5 @@
 /// <reference types="node" />
+import * as vscode from 'vscode';
 import { ProxyPoolManager } from '../server/core/ProxyPoolManager';
 import { ProxyAssignmentManager } from '../server/core/ProxyAssignmentManager';
 import { ProxyLoadBalancer } from '../server/core/ProxyLoadBalancer';
@@ -25,10 +26,26 @@ const mockContext = {
     delete: async (key: string) => {
       console.log(`[MOCK] Deleting secret: ${key}`);
       return Promise.resolve();
-    }
+    },
+    onDidChange: {} as any
   },
-  subscriptions: []
-} as any;
+  subscriptions: [],
+  workspaceState: {} as any,
+  globalState: {} as any,
+  extensionUri: {} as any,
+  extensionPath: '',
+  environmentVariableCollection: {} as any,
+  extensionMode: 1,
+  logUri: {} as any,
+  storageUri: {} as any,
+  globalStorageUri: {} as any,
+  logPath: '',
+  storagePath: '',
+  globalStoragePath: '',
+  asAbsolutePath: (relativePath: string) => relativePath,
+  extension: {} as any,
+  languageModelAccessInformation: {} as any
+} as unknown as vscode.ExtensionContext;
 
 interface TestConfig {
   apiKeys: string[];

@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 // Conditionally import vscode only when available
-let vscode: any = null;
+let vscode: typeof import('vscode') | null = null;
 try {
   vscode = require('vscode');
 } catch (error) {

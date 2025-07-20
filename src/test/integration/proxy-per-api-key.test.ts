@@ -1,5 +1,6 @@
 /// <reference types="node" />
 /// <reference types="mocha" />
+import * as vscode from 'vscode';
 import { ProxyPoolManager } from '../../server/core/ProxyPoolManager';
 import { ProxyAssignmentManager } from '../../server/core/ProxyAssignmentManager';
 import { ProxyLoadBalancer } from '../../server/core/ProxyLoadBalancer';
@@ -14,28 +15,40 @@ import * as assert from 'assert';
 dotenvConfig();
 
 // Mock VS Code extension context for testing
-const mockContext = {
-  secrets: new Map<string, string>(),
-  store: async function(key: string, value: string) {
-    this.secrets.set(key, value);
-    return Promise.resolve();
-  },
-  get: async function(key: string) {
-    return Promise.resolve(this.secrets.get(key) || null);
-  },
-  delete: async function(key: string) {
-    this.secrets.delete(key);
-    return Promise.resolve();
-  },
-  subscriptions: []
-} as any;
+const secretsMap = new Map<string, string>();
 
-// Override the secrets object to use our mock methods
-mockContext.secrets = {
-  store: mockContext.store.bind(mockContext),
-  get: mockContext.get.bind(mockContext),
-  delete: mockContext.delete.bind(mockContext)
-};
+const mockContext = {
+  secrets: {
+    store: async (key: string, value: string) => {
+      secretsMap.set(key, value);
+      return Promise.resolve();
+    },
+    get: async (key: string) => {
+      return Promise.resolve(secretsMap.get(key));
+    },
+    delete: async (key: string) => {
+      secretsMap.delete(key);
+      return Promise.resolve();
+    },
+    onDidChange: {} as any
+  },
+  subscriptions: [],
+  workspaceState: {} as any,
+  globalState: {} as any,
+  extensionUri: {} as any,
+  extensionPath: '',
+  environmentVariableCollection: {} as any,
+  extensionMode: 1,
+  logUri: {} as any,
+  storageUri: {} as any,
+  globalStorageUri: {} as any,
+  logPath: '',
+  storagePath: '',
+  globalStoragePath: '',
+  asAbsolutePath: (relativePath: string) => relativePath,
+  extension: {} as any,
+  languageModelAccessInformation: {} as any
+} as vscode.ExtensionContext;
 
 describe('Proxy-per-API-Key Integration Tests', function() {
   this.timeout(60000); // 60 second timeout for integration tests

@@ -37,7 +37,7 @@ export function getTestConfig(): TestConfig {
     healthCheckInterval: parseInt(process.env.PROXY_HEALTH_CHECK_INTERVAL || '60000', 10),
     maxErrorsBeforeDisable: parseInt(process.env.PROXY_MAX_ERRORS_BEFORE_DISABLE || '3', 10),
     autoAssignmentEnabled: process.env.PROXY_AUTO_ASSIGNMENT_ENABLED !== 'false',
-    loadBalancingStrategy: (process.env.PROXY_LOAD_BALANCING_STRATEGY as any) || 'least_loaded',
+    loadBalancingStrategy: (process.env.PROXY_LOAD_BALANCING_STRATEGY as 'round_robin' | 'least_loaded' | 'random') || 'least_loaded',
     testMode: process.env.TEST_MODE === 'true',
     testProxyTimeout: parseInt(process.env.TEST_PROXY_TIMEOUT || '5000', 10)
   };

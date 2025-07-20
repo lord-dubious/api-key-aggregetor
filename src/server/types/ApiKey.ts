@@ -11,6 +11,7 @@ export interface ApiKey {
   proxy?: string; // Legacy field: direct proxy URL (for backward compatibility)
   assignedProxyId?: string; // ID of the assigned proxy server from the proxy pool
   proxyAssignedAt?: number; // Timestamp when the proxy was assigned
+  useRotatingProxy?: boolean; // Flag to indicate if this key should use rotating proxy
   
   // 可以添加其他统计信息，如总请求数、失败次数等
 }

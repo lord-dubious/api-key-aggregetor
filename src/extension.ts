@@ -22,12 +22,35 @@ import { ProxyLoadBalancer } from "./server/core/ProxyLoadBalancer"; // Import P
 import { ProxyConfigurationManager } from "./server/core/ProxyConfigurationManager"; // Import ProxyConfigurationManager
 import { ProxyErrorHandler } from "./server/core/ProxyErrorHandler"; // Import ProxyErrorHandler
 import { MigrationManager } from "./server/core/MigrationManager"; // Import MigrationManager
+import { RotatingProxyHealthMonitor } from "./server/core/RotatingProxyHealthMonitor"; // Import RotatingProxyHealthMonitor
+import { rotatingProxyUIService } from "./ui/core/RotatingProxyUIService"; // Import RotatingProxyUIService
 import { ProxyPerformanceMonitor } from "./server/core/ProxyPerformanceMonitor"; // Import ProxyPerformanceMonitor
+
+// Import native UI components
+import { ApiKeyTreeProvider } from './ui/providers/ApiKeyTreeProvider';
+import { ProxyTreeProvider } from './ui/providers/ProxyTreeProvider';
+import { ApiKeyCommands } from './ui/commands/ApiKeyCommands';
+import { ProxyCommands } from './ui/commands/ProxyCommands';
+import { ServerCommands } from './ui/commands/ServerCommands';
+import { 
+  statusBarManager, 
+  systemMonitor, 
+  createCoreIntegrationService,
+  disposalManager
+} from './ui/core';
 
 let server: http.Server | undefined; // Declare server variable to manage its lifecycle
 let apiKeyManager: ApiKeyManager; // Declare apiKeyManager variable to be accessible in commands
 let webviewPanel: vscode.WebviewPanel | undefined; // 新增：保存 webviewPanel 引用
 let proxyPoolManager: ProxyPoolManager | undefined; // Declare proxy pool manager for cleanup
+
+// Native UI components
+let apiKeyTreeProvider: ApiKeyTreeProvider | undefined;
+let proxyTreeProvider: ProxyTreeProvider | undefined;
+let coreIntegrationService: any;
+let apiKeyCommands: ApiKeyCommands | undefined;
+let proxyCommands: ProxyCommands | undefined;
+let serverCommands: ServerCommands | undefined;
 
 /**
  * Load proxies from environment variables if rotating proxy is not configured
@@ -107,6 +130,18 @@ export async function activate(context: vscode.ExtensionContext) {
 	const proxyConfigurationManager = new ProxyConfigurationManager(context);
 	await proxyConfigurationManager.migrateLegacyConfiguration();
 	const proxyConfig = await proxyConfigurationManager.loadConfiguration();
+
+	// Initialize rotating proxy health monitor
+	const rotatingProxyHealthMonitor = new RotatingProxyHealthMonitor(proxyConfigurationManager);
+	
+	// Start health monitoring if rotating proxy is enabled
+	if (config.USE_ROTATING_PROXY && config.ROTATING_PROXY) {
+		console.log('Extension: Starting rotating proxy health monitoring');
+		rotatingProxyHealthMonitor.startMonitoring();
+		
+		// Initialize UI service with health monitor
+		rotatingProxyUIService.initialize(rotatingProxyHealthMonitor);
+	}
 	
 	// Initialize proxy management components
 	proxyPoolManager = new ProxyPoolManager(eventManager, context);
@@ -144,6 +179,9 @@ export async function activate(context: vscode.ExtensionContext) {
 		proxyAssignmentManager,
 		proxyConfigurationManager
 	);
+
+	// Store health monitor in context for access by other components
+	(context as any).rotatingProxyHealthMonitor = rotatingProxyHealthMonitor;
 	
 	// Check if migration is needed and perform it
 	const migrationNeeded = await migrationManager.isMigrationNeeded();
@@ -167,6 +205,10 @@ export async function activate(context: vscode.ExtensionContext) {
 	await apiKeyManager.loadKeys(initialApiKeys); // 確保在啟動時載入持久化狀態
 
 	const googleApiForwarder = new GoogleApiForwarder();
+	
+	// Connect health monitor to GoogleApiForwarder
+	googleApiForwarder.setHealthMonitor(rotatingProxyHealthMonitor);
+	
 	const streamHandler = new StreamHandler();
 	const requestDispatcher = new RequestDispatcher(apiKeyManager);
 
@@ -191,7 +233,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	server.listen(port, () => {
 		console.log(`Proxy server is running on port ${port}`);
 		vscode.window.showInformationMessage(`API Key Aggregator Proxy Server started on port ${port}`);
-	}).on('error', (err: any) => {
+	}).on('error', (err: { code?: string; message?: string }) => {
 		if (err.code === 'EADDRINUSE') {
 			console.warn(`Port ${port} is already in use. Proxy server may be running in another VS Code window.`);
 			vscode.window.showInformationMessage(`API Key Aggregator Proxy Server is already running on port ${port} in another VS Code window.`);
@@ -216,6 +258,71 @@ export async function activate(context: vscode.ExtensionContext) {
 	});
 
 	// --- End Proxy Server Integration ---
+
+	// --- Initialize Native UI Components ---
+	console.log('Extension: Initializing native UI components...');
+	
+	// Create core integration service
+	coreIntegrationService = createCoreIntegrationService(
+		eventManager,
+		apiKeyManager,
+		proxyPoolManager,
+		proxyAssignmentManager
+	);
+	coreIntegrationService.initialize();
+	
+	// Initialize TreeView providers
+	apiKeyTreeProvider = new ApiKeyTreeProvider();
+	proxyTreeProvider = new ProxyTreeProvider();
+	
+	// Register TreeViews
+	const apiKeyTreeView = vscode.window.createTreeView('geminiAggregator.apiKeys', {
+		treeDataProvider: apiKeyTreeProvider,
+		showCollapseAll: true
+	});
+	
+	const proxyTreeView = vscode.window.createTreeView('geminiAggregator.proxies', {
+		treeDataProvider: proxyTreeProvider,
+		showCollapseAll: true
+	});
+	
+	// Initialize command handlers
+	apiKeyCommands = new ApiKeyCommands(coreIntegrationService);
+	proxyCommands = new ProxyCommands(proxyPoolManager, proxyAssignmentManager);
+	serverCommands = new ServerCommands();
+	
+	// Register all commands
+	apiKeyCommands.registerCommands(context);
+	proxyCommands.registerCommands(context);
+	serverCommands.registerCommands(context);
+	
+	// Initialize and show status bar
+	statusBarManager.show();
+	
+	// Start system monitoring
+	systemMonitor.startMonitoring();
+	
+	// Register UI components with disposal manager
+	disposalManager.register(apiKeyTreeView);
+	disposalManager.register(proxyTreeView);
+	disposalManager.register(coreIntegrationService);
+	disposalManager.register(statusBarManager);
+	disposalManager.register(systemMonitor);
+	
+	// Register cleanup tasks
+	disposalManager.registerCleanupTask(() => {
+		if (apiKeyCommands) apiKeyCommands.dispose();
+		if (proxyCommands) proxyCommands.dispose();
+		if (serverCommands) serverCommands.dispose();
+		if (apiKeyTreeProvider) apiKeyTreeProvider.dispose();
+		if (proxyTreeProvider) proxyTreeProvider.dispose();
+	});
+	
+	// Add disposal manager to context subscriptions
+	context.subscriptions.push(disposalManager);
+	
+	console.log('Extension: Native UI components initialized successfully');
+	// --- End Native UI Components ---
 
 	// Example command from the template (can be removed later)
 console.log('Roo: Before registering runserver command');
@@ -770,9 +877,35 @@ function getNonce() {
 }
 
 // This method is called when your extension is deactivated
-export function deactivate() {
+export async function deactivate() {
 	console.log('Your extension "api-key-aggregetor" is being deactivated.');
 	
+	// Use disposal manager for comprehensive cleanup
+	try {
+		await disposalManager.dispose();
+		console.log('All UI components disposed successfully via DisposalManager.');
+	} catch (error) {
+		console.error('Error disposing UI components via DisposalManager:', error);
+	}
+	
+	// Clean up rotating proxy services
+	try {
+		rotatingProxyUIService.stop();
+		console.log('Rotating proxy UI service stopped successfully.');
+	} catch (error) {
+		console.error('Error stopping rotating proxy UI service:', error);
+	}
+
+	const healthMonitor = (context as any)?.rotatingProxyHealthMonitor;
+	if (healthMonitor) {
+		try {
+			healthMonitor.stopMonitoring();
+			console.log('Rotating proxy health monitor stopped successfully.');
+		} catch (error) {
+			console.error('Error stopping rotating proxy health monitor:', error);
+		}
+	}
+
 	// Clean up proxy resources
 	if (proxyPoolManager) {
 		try {

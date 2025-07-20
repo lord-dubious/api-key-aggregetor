@@ -70,7 +70,7 @@ export class ProxyPerformanceMonitor {
     });
 
     // Listen for request updates to track performance
-    this.eventManager.on('requestUpdate', (requestStatus: any) => {
+    this.eventManager.on('requestUpdate', (requestStatus: { proxyId?: string; status: string; responseTime?: number }) => {
       if (requestStatus.proxyId) {
         this.recordRequest(requestStatus);
       }
@@ -117,10 +117,11 @@ export class ProxyPerformanceMonitor {
   /**
    * Record a request for performance tracking
    */
-  private recordRequest(requestStatus: any): void {
+  private recordRequest(requestStatus: { proxyId?: string; status: string; responseTime?: number; startTime?: number; endTime?: number }): void {
     const proxyId = requestStatus.proxyId;
-    const metrics = this.metrics.get(proxyId);
+    if (!proxyId) return; // Skip if no proxy ID
     
+    const metrics = this.metrics.get(proxyId);
     if (!metrics) return;
 
     metrics.totalRequests++;

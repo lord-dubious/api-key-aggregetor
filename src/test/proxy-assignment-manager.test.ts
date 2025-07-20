@@ -62,14 +62,14 @@ class MockProxyPoolManager {
 describe('ProxyAssignmentManager', () => {
   let proxyAssignmentManager: ProxyAssignmentManager;
   let eventManager: EventManager;
-  let proxyPoolManager: any;
+  let proxyPoolManager: ProxyPoolManager;
   
   beforeEach(() => {
     eventManager = new EventManager();
-    proxyPoolManager = new MockProxyPoolManager();
+    proxyPoolManager = new MockProxyPoolManager() as unknown as ProxyPoolManager;
     proxyAssignmentManager = new ProxyAssignmentManager(
       eventManager,
-      proxyPoolManager as any,
+      proxyPoolManager,
       mockContext
     );
   });

@@ -20,7 +20,7 @@ suite('Proxy Test Suite', () => {
   suiteSetup(async () => {
     const testProxy = new TestProxyServer(proxyPort);
     await testProxy.start();
-    proxyServer = (testProxy as any).server; // Access the internal server for compatibility
+    proxyServer = (testProxy as unknown as { server: http.Server }).server; // Access the internal server for compatibility
   });
 
   suiteTeardown(() => {
@@ -61,9 +61,10 @@ suite('Proxy Test Suite', () => {
     try {
       await googleApiForwarder.forwardRequest('gemini-2.0-flash', 'generateContent', {}, apiKey);
       assert.fail('Expected request to fail through proxy');
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Verify it's a network/proxy error, not some other unexpected error
-      assert.ok(error.message || error.code, 'Error should have a message or code');
+      const errorObj = error as { message?: string; code?: string };
+      assert.ok(errorObj.message || errorObj.code, 'Error should have a message or code');
     }
 
     assert.strictEqual(requestReceived, true, 'Proxy was not used');

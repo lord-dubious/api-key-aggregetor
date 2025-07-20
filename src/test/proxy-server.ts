@@ -88,7 +88,7 @@ class TestProxyServer {
     req.pipe(proxyReq);
   }
 
-  private handleConnect(req: http.IncomingMessage, clientSocket: any, head: Buffer) {
+  private handleConnect(req: http.IncomingMessage, clientSocket: NodeJS.Socket, head: Buffer) {
     this.requestCount++;
     console.log(`[Proxy:${this.port}] CONNECT Request #${this.requestCount}: ${req.url}`);
 

@@ -122,8 +122,8 @@ describe('ProxyPoolManager', () => {
       
       assert.strictEqual(eventFired, true, 'proxyAdded event should be emitted');
       if (eventProxy) {
-        assert.strictEqual((eventProxy as any).id, proxyId, 'Event should contain correct proxy ID');
-        assert.strictEqual((eventProxy as any).url, proxyUrl, 'Event should contain correct proxy URL');
+        assert.strictEqual((eventProxy as ProxyServer).id, proxyId, 'Event should contain correct proxy ID');
+        assert.strictEqual((eventProxy as ProxyServer).url, proxyUrl, 'Event should contain correct proxy URL');
       } else {
         assert.fail('Event proxy should not be null');
       }

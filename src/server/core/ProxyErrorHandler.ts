@@ -26,13 +26,16 @@ export class ProxyErrorHandler {
   /**
    * Handle proxy status changes
    */
-  private async handleProxyStatusChange(proxy: any): Promise<void> {
+  private async handleProxyStatusChange(proxy: { id: string; url: string; status: string }): Promise<void> {
     if (proxy.status === 'error') {
       console.warn(`ProxyErrorHandler: Proxy ${proxy.id} (${proxy.url}) has failed`);
       
       // If this proxy has assigned keys, we might want to reassign them
-      if (proxy.assignedKeyCount > 0) {
-        console.log(`ProxyErrorHandler: Proxy ${proxy.id} has ${proxy.assignedKeyCount} assigned keys`);
+      const assignments = this.proxyAssignmentManager.getAllAssignments();
+      const assignedKeyCount = assignments.filter(a => a.proxyId === proxy.id).length;
+      
+      if (assignedKeyCount > 0) {
+        console.log(`ProxyErrorHandler: Proxy ${proxy.id} has ${assignedKeyCount} assigned keys`);
         // For now, we'll let the keys continue using the failed proxy
         // The GoogleApiForwarder will handle fallback to direct connection
         // In the future, we could implement automatic reassignment here
