@@ -25,31 +25,31 @@ export class ApiKeyCommands {
     public registerCommands(context: vscode.ExtensionContext): void {
         // Register add API key command
         const addApiKeyCommand = vscode.commands.registerCommand(
-            'geminiAggregator.addApiKey',
+            'geminiAggregator-dev.addApiKey',
             () => this.addApiKey()
         );
 
         // Register remove API key command
         const removeApiKeyCommand = vscode.commands.registerCommand(
-            'geminiAggregator.removeApiKey',
+            'geminiAggregator-dev.removeApiKey',
             (keyId?: string) => this.removeApiKey(keyId)
         );
 
         // Register view API key details command
         const viewApiKeyDetailsCommand = vscode.commands.registerCommand(
-            'geminiAggregator.viewApiKeyDetails',
+            'geminiAggregator-dev.viewApiKeyDetails',
             (keyId?: string) => this.viewApiKeyDetails(keyId)
         );
 
         // Register test API key command
         const testApiKeyCommand = vscode.commands.registerCommand(
-            'geminiAggregator.testApiKey',
+            'geminiAggregator-dev.testApiKey',
             (keyId?: string) => this.testApiKey(keyId)
         );
 
         // Register refresh API keys command
         const refreshApiKeysCommand = vscode.commands.registerCommand(
-            'geminiAggregator.refreshApiKeys',
+            'geminiAggregator-dev.refreshApiKeys',
             () => this.refreshApiKeys()
         );
 

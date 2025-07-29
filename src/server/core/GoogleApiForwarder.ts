@@ -1,4 +1,4 @@
-import { GoogleGenAI } from '@google/genai';
+const { GoogleGenAI } = require('@google/genai');
 import { ApiKey } from '../types';
 import { RotatingProxyConfig } from '../types/RotatingProxy';
 import { RotatingProxyHealthMonitor } from './RotatingProxyHealthMonitor';
@@ -40,7 +40,6 @@ class GoogleApiForwarder {
   private maxRotatingProxyFailures: number = 3;
   private rotatingProxyDisabledUntil?: number;
   private healthMonitor?: RotatingProxyHealthMonitor;
-  private healthMonitor?: RotatingProxyHealthMonitor;
   
   /**
    * Set the maximum number of proxy retries
@@ -54,13 +53,6 @@ class GoogleApiForwarder {
    */
   public setHealthMonitor(monitor: RotatingProxyHealthMonitor): void {
     this.healthMonitor = monitor;
-  }
-
-  /**
-   * Set the health monitor for rotating proxy
-   */
-  public setHealthMonitor(healthMonitor: RotatingProxyHealthMonitor): void {
-    this.healthMonitor = healthMonitor;
   }
   
   /**
@@ -342,4 +334,5 @@ class GoogleApiForwarder {
   }
 }
 
+export { GoogleApiForwarder };
 export default GoogleApiForwarder;

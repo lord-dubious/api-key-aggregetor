@@ -364,8 +364,8 @@ npm run test:proxy
 
 ### Development Setup
 ```bash
-git clone https://github.com/your-repo/gemini-aggregator
-cd gemini-aggregator
+git clone https://github.com/lord-dubious/api-key-aggregetor
+cd api-key-aggregetor
 npm install
 npm run compile
 ```
@@ -394,9 +394,9 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## 🆘 Support
 
-- **Issues**: [GitHub Issues](https://github.com/your-repo/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/your-repo/discussions)
-- **Documentation**: [Wiki](https://github.com/your-repo/wiki)
+- **Issues**: [GitHub Issues](https://github.com/lord-dubious/api-key-aggregetor/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/lord-dubious/api-key-aggregetor/discussions)
+- **Documentation**: [Wiki](https://github.com/lord-dubious/api-key-aggregetor/wiki)
 
 ## 🔄 Changelog
 

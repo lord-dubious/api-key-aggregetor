@@ -23,12 +23,12 @@ export class ProxyCommands {
    */
   public registerCommands(context: vscode.ExtensionContext): void {
     const commands = [
-      vscode.commands.registerCommand('geminiAggregator.addProxy', () => this.addProxy()),
-      vscode.commands.registerCommand('geminiAggregator.removeProxy', (proxyId?: string) => this.removeProxy(proxyId)),
-      vscode.commands.registerCommand('geminiAggregator.testProxy', (proxyId?: string) => this.testProxy(proxyId)),
-      vscode.commands.registerCommand('geminiAggregator.assignProxy', (proxyId?: string) => this.assignProxy(proxyId)),
-      vscode.commands.registerCommand('geminiAggregator.refreshProxies', () => this.refreshProxies()),
-      vscode.commands.registerCommand('geminiAggregator.viewProxyDetails', (proxyId?: string) => this.viewProxyDetails(proxyId))
+      vscode.commands.registerCommand('geminiAggregator-dev.addProxy', () => this.addProxy()),
+      vscode.commands.registerCommand('geminiAggregator-dev.removeProxy', (proxyId?: string) => this.removeProxy(proxyId)),
+      vscode.commands.registerCommand('geminiAggregator-dev.testProxy', (proxyId?: string) => this.testProxy(proxyId)),
+      vscode.commands.registerCommand('geminiAggregator-dev.assignProxy', (proxyId?: string) => this.assignProxy(proxyId)),
+      vscode.commands.registerCommand('geminiAggregator-dev.refreshProxies', () => this.refreshProxies()),
+      vscode.commands.registerCommand('geminiAggregator-dev.viewProxyDetails', (proxyId?: string) => this.viewProxyDetails(proxyId))
     ];
 
     this.disposables.push(...commands);

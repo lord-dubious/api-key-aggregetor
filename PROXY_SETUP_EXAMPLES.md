@@ -311,23 +311,25 @@ https://user:pass@secure-proxy.com:8443
 # Use "Rebalance" button regularly
 
 # Redundancy
-# Have backup ils.uration detanfig your co withrepo/issues)r-com/youithub.https://gtHub Issue]( Open a [Giic setup?** your specif help with
-**Need-
-``
-
---r
-`lovec faitiutomatoring
-# Atime moni# Real-oxy types
-of all prers
-# Mix le providmultipxies across 
-# 10+ pro``bashs)
-`PI Key0+ Aavy Usage (1He### 
+# Have backup proxies ready
+# Monitor for failures
+# Automatic failover
 ```
 
-#onitor daily
-# Mtributionic dis# Geographdential)
-enter + resis (datacproxiemixed ash
-# 5-7 eys)
+### Heavy Usage (10+ API Keys)
+```bash
+# 10+ proxies across multiple providers
+# Mix of all proxy types
+# Geographic distribution
+# Real-time monitoring
+# Monitor daily
+```
+
+---
+
+## 🆘 Need Help?
+
+**Need help with your specific setup?** [Open a GitHub Issue](https://github.com/lord-dubious/api-key-aggregetor/issues)
 ```b10 API K(4-Usage #### Medium 
 
 ``ekly

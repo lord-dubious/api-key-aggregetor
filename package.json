@@ -31,11 +31,15 @@
     "commands": [
       {
         "command": "geminiAggregator-dev.runserver",
-        "title": "Run Server"
+        "title": "Gemini: Run Server"
       },
       {
         "command": "geminiAggregator-dev.addApiKey",
         "title": "Gemini: Add API Key"
+      },
+      {
+        "command": "geminiAggregator-dev.removeApiKey",
+        "title": "Gemini: Remove API Key"
       },
       {
         "command": "geminiAggregator-dev.listApiKeys",
@@ -50,8 +54,92 @@
         "title": "Gemini: Delete API Key"
       },
       {
+        "command": "geminiAggregator-dev.viewApiKeyDetails",
+        "title": "Gemini: View API Key Details"
+      },
+      {
+        "command": "geminiAggregator-dev.testApiKey",
+        "title": "Gemini: Test API Key"
+      },
+      {
+        "command": "geminiAggregator-dev.refreshApiKeys",
+        "title": "Gemini: Refresh API Keys"
+      },
+      {
         "command": "geminiAggregator-dev.openPanel",
         "title": "Gemini: Open Aggregator Panel"
+      },
+      {
+        "command": "geminiAggregator-dev.toggleServer",
+        "title": "Gemini: Toggle Server"
+      },
+      {
+        "command": "geminiAggregator-dev.startServer",
+        "title": "Gemini: Start Server"
+      },
+      {
+        "command": "geminiAggregator-dev.stopServer",
+        "title": "Gemini: Stop Server"
+      },
+      {
+        "command": "geminiAggregator-dev.showLogs",
+        "title": "Gemini: Show Logs"
+      },
+      {
+        "command": "geminiAggregator-dev.refreshAll",
+        "title": "Gemini: Refresh All"
+      },
+      {
+        "command": "geminiAggregator-dev.addProxy",
+        "title": "Gemini: Add Proxy"
+      },
+      {
+        "command": "geminiAggregator-dev.removeProxy",
+        "title": "Gemini: Remove Proxy"
+      },
+      {
+        "command": "geminiAggregator-dev.testProxy",
+        "title": "Gemini: Test Proxy"
+      },
+      {
+        "command": "geminiAggregator-dev.assignProxy",
+        "title": "Gemini: Assign Proxy"
+      },
+      {
+        "command": "geminiAggregator-dev.refreshProxies",
+        "title": "Gemini: Refresh Proxies"
+      },
+      {
+        "command": "geminiAggregator-dev.viewProxyDetails",
+        "title": "Gemini: View Proxy Details"
+      },
+      {
+        "command": "geminiAggregator-dev.restartServer",
+        "title": "Gemini: Restart Server"
+      },
+      {
+        "command": "geminiAggregator-dev.exportConfig",
+        "title": "Gemini: Export Configuration"
+      },
+      {
+        "command": "geminiAggregator-dev.importConfig",
+        "title": "Gemini: Import Configuration"
+      },
+      {
+        "command": "geminiAggregator-dev.viewServerStatus",
+        "title": "Gemini: View Server Status"
+      },
+      {
+        "command": "geminiAggregator-dev.setProxyAssignmentMode",
+        "title": "Gemini: Set Proxy Assignment Mode"
+      },
+      {
+        "command": "geminiAggregator-dev.testRotatingProxy",
+        "title": "Gemini: Test Rotating Proxy"
+      },
+      {
+        "command": "geminiAggregator-dev.configureRotatingProxy",
+        "title": "Gemini: Configure Rotating Proxy"
       }
     ],
     "configuration": {

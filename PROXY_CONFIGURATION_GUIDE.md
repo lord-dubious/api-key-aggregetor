@@ -351,85 +351,89 @@ curl -w "@curl-format.txt" -x http://proxy:port https://httpbin.org/ip
 echo "time_namelookup: %{time_namelookup}
 time_connect: %{time_connect}
 time_appconnect: %{time_appconnect}
-ti1.0.0ion**:   
-**VersJanuary 2025 Updated**: 
-**Lasts
-
----
-s statuer'id proxy provheck yours**: Cus PageStatProvider st.com
-- **/fa**: https:/eed Testing
-- **Spinfo.io//ipn**: https:eolocatioIP Gg/ip
-- **in.ors://httpbting**: httpProxy Tes**s
-- nk Lieful Usns
-
-###r questiocussions fotHub Dis*: Gi*Community*- *d
-ESHOOTING.m and TROUBL*: README.mdation*ent- **Docum
-turesuest fea and requgseport bsues**: R IsubtH- **Gig Help
-ettin### Gources
-
- Res Support &
----
-
-## 📞regularly
-ogs access lview proxy **: Ret Logsdi**Auterns
-- c patected traffiunexp Watch for  Usage**:itor **Monictions
-- IP restre provider Configurlisting**: Whitele
-- **IPabavailn hes wproxie: Use HTTPS referred**- **HTTPS Pk Security
-### Networials
-
-#credenthas proxy  who imitControl**: L **Access ode
--ials to cit credentommNever c Storage**: 
-- **Secures monthlyedential Change cr**:lar Rotatione
-- **Reguoxy servicch prnt for eafererds**: Difswoasue Pt
-- **Uniqnagemenential Ma## Credns
-
-##ioy ConsideratSecurit5%
-
-###  9hould be > Rate**: S **Successd
--nly balanceould be evetion**: Shibu*Load Distrnds
-- *be < 3 secold ime**: Shou T- **Response < 5%
-ld behouor Rate**: S
-- **ErrtricsMeormance  Perf###ce
-
-#r performanvide pro**: Evaluaterterlyies
-- **Quapdate prox and ucredentials Rotate **Monthly**:formance
-- per rates and erroriew : Revekly**We**ks
-- lar Chec Reguance
-
-#### Maintenonitoring & M
-###eys
- API ks, 5+roxie 10+ ps**: Projectrges
-- **Lakey, 3-5 API es-10 proxi: 5s**rojectm P*Mediukeys
-- *, 2-3 API 2-3 proxiesProjects**: all **Smes
-- idelinGug # Scalin##
+time_pretransfer: %{time_pretransfer}
+time_starttransfer: %{time_starttransfer}
+time_total: %{time_total}" > curl-format.txt
 ```
 
-#S)OCKTPS, S (HTTP, HTtypesxy prox of egions
-# Min across riodistributaphic key
-# Geogries per API  proxs
-# 1-2case most use  keys for-5 APIh
-# 3bas Setup
-```# Optimalegy
+### Useful Testing Resources
 
-### Straturationonfig
-### C
-tsed key counor assignit**: Monoxiesd Prerloade **Ov
--ss locationssify acro**: Divere RegionnglSi **
--ntscated accou*: Use dediredentials*- **Shared Cpromised
-d often comannreliable : Ues**oxiFree Pr**d These
-- oiAv# ##ions
+#### IP Checking Services
+- **WhatIsMyIP**: https://whatismyipaddress.com/
+- **IP Geolocation**: https://ipinfo.io/ip
+- **Proxy Testing**: https://httpbin.org/ip
 
-#egtiple rrsity**: Mulc DiveGeographity
-- **ilabili: > 99% avatime**ests
-- **Upul requsuccessf: > 95% Rate**s 
-- **Succesageaveronds e**: < 2 seconse Timesptors
-- **Rality IndicaQu
-#### ction
-Proxy Sele
+#### Community & Support
 
-### ractices 🏆 Best P
+### Getting Help
+- **Documentation**: README.md and TROUBLESHOOTING.md
+- **GitHub Issues**: https://github.com/lord-dubious/api-key-aggregetor/issues
+- **GitHub Discussions**: https://github.com/lord-dubious/api-key-aggregetor/discussions
 
-##`rmat.txt
-``> curl-fo" me_total}al: %{ti_tot}
-timetarttransferr: %{time_sansfearttr
-time_stsfer}tranime_preransfer: %{tetme_pr
+## 🏆 Best Practices
+
+### Security Considerations
+
+#### Credential Management
+- **Unique Passwords**: Use different passwords for each proxy service
+- **Regular Rotation**: Change credentials monthly
+- **Secure Storage**: Never commit credentials to code
+- **Access Control**: Limit who has proxy credentials
+
+#### Network Security
+- **HTTPS Preferred**: Use HTTPS proxies when available
+- **IP Whitelisting**: Configure provider IP restrictions
+- **Monitor Usage**: Watch for unexpected traffic patterns
+- **Audit Logs**: Review proxy access logs regularly
+
+### Performance Optimization
+
+#### Quality Indicators
+- **Success Rate**: Should be > 95%
+- **Response Time**: Should be < 2 seconds average
+- **Error Rate**: Should be < 5%
+- **Uptime**: Should be > 99% availability
+
+#### Maintenance & Monitoring
+- **Regular Checks**: Weekly review of performance
+- **Quarterly Evaluation**: Rotate credentials and update proxies
+- **Monthly Updates**: Review error rates and performance
+
+### Scaling Guidelines
+
+#### Project Sizing
+- **Small Projects**: 1-3 API keys, 2-3 proxies
+- **Medium Projects**: 3-10 API keys, 5-10 proxies
+- **Large Projects**: 10+ API keys, 10+ proxies
+
+#### Optimal Setup Strategy
+```bash
+# Basic Setup
+# 3-5 API keys for most use cases
+# 1-2 proxies per API key
+# Geographic distribution across regions
+# Mix of proxy types (HTTP, HTTPS, SOCKS)
+```
+
+### Configuration Best Practices
+
+#### Proxy Selection
+- **Geographic Diversity**: Multiple regions
+- **Provider Reliability**: > 99% uptime
+- **Avoid Free Proxies**: These are often unreliable and compromised
+- **Use Dedicated Accounts**: Shared credentials are often compromised
+- **Monitor Overloaded Proxies**: Assign based on key count
+
+---
+
+## 📞 Support & Resources
+
+### Getting Help
+- **Documentation**: README.md and TROUBLESHOOTING.md
+- **GitHub Issues**: https://github.com/lord-dubious/api-key-aggregetor/issues
+- **GitHub Discussions**: https://github.com/lord-dubious/api-key-aggregetor/discussions
+
+---
+
+**Version**: January 2025 Updated
+**Last Updated**: July 2025

@@ -40,15 +40,15 @@ export class StatusBarManager {
    */
   private setupStatusBarItems(): void {
     // Server status item - will toggle between start/stop based on current state
-    this.serverStatusItem.command = 'geminiAggregator.toggleServer';
+    this.serverStatusItem.command = 'geminiAggregator-dev.toggleServer';
     this.serverStatusItem.tooltip = 'Click to start/stop server';
-    
+
     // Request count item
-    this.requestCountItem.command = 'geminiAggregator.showLogs';
+    this.requestCountItem.command = 'geminiAggregator-dev.showLogs';
     this.requestCountItem.tooltip = 'Click to view request logs';
-    
+
     // Health status item
-    this.healthStatusItem.command = 'geminiAggregator.refreshAll';
+    this.healthStatusItem.command = 'geminiAggregator-dev.refreshAll';
     this.healthStatusItem.tooltip = 'Click to refresh proxy health status';
   }
 
