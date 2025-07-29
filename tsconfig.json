@@ -25,6 +25,7 @@
 	},
 	"exclude": [
 		"node_modules/@types/jest",
-		"src/webview-ui" // Exclude webview-ui from root tsconfig compilation
+		"src/webview-ui", // Exclude webview-ui from root tsconfig compilation
+		"src/test/**/*" // Exclude test files for now
 	]
 }

@@ -91,6 +91,8 @@ export interface UIEvents {
   'proxyUpdated': { proxyId: string; item: ProxyTreeItem };
   'serverStatusChanged': { status: ServerStatus };
   'refreshRequested': {};
+  'rotatingProxyModeChanged': { enabled: boolean; url?: string };
+  'rotatingProxyHealthChanged': { healthStatus: any };
 }
 
 /**

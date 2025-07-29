@@ -79,16 +79,14 @@ suite('GoogleApiForwarder Rotating Proxy Tests', () => {
       assert.strictEqual(mockConfig.USE_ROTATING_PROXY, true);
     });
 
-    test('should track failure count', () => {
+    test.skip('should track failure count', () => {
       // Test that consecutive failures are tracked
       // This would require access to private methods or integration testing
-      assert.strictEqual(true, true); // Placeholder
     });
 
-    test('should temporarily disable rotating proxy after max failures', () => {
+    test.skip('should temporarily disable rotating proxy after max failures', () => {
       // Test that rotating proxy gets disabled after too many failures
       // This would require time manipulation and network mocking
-      assert.strictEqual(true, true); // Placeholder
     });
   });
 
@@ -120,57 +118,51 @@ suite('GoogleApiForwarder Rotating Proxy Tests', () => {
   });
 
   suite('Fallback Logic', () => {
-    test('should fallback to individual proxy when rotating proxy fails', () => {
+    test.skip('should fallback to individual proxy when rotating proxy fails', () => {
       mockConfig.USE_ROTATING_PROXY = true;
       mockConfig.ROTATING_PROXY = 'http://failing-rotating-proxy.com:8080';
       testApiKey.proxy = 'http://backup-individual-proxy.com:8080';
 
       // Test that fallback logic works
       // This would require mocking network failures and testing the retry logic
-      assert.strictEqual(true, true); // Placeholder - would need integration test
     });
 
-    test('should fallback to direct connection as last resort', () => {
+    test.skip('should fallback to direct connection as last resort', () => {
       mockConfig.USE_ROTATING_PROXY = true;
       mockConfig.ROTATING_PROXY = 'http://failing-rotating-proxy.com:8080';
       // No individual proxy set
 
       // Test that direct connection is used as last resort
-      assert.strictEqual(true, true); // Placeholder - would need integration test
     });
   });
 
   suite('Configuration Validation', () => {
-    test('should handle invalid rotating proxy URLs', () => {
+    test.skip('should handle invalid rotating proxy URLs', () => {
       mockConfig.USE_ROTATING_PROXY = true;
       mockConfig.ROTATING_PROXY = 'invalid-url';
 
       // Test that invalid URLs are handled gracefully
       // This would be tested through the proxy creation logic
-      assert.strictEqual(true, true); // Placeholder
     });
 
-    test('should handle missing rotating proxy URL', () => {
+    test.skip('should handle missing rotating proxy URL', () => {
       mockConfig.USE_ROTATING_PROXY = true;
       mockConfig.ROTATING_PROXY = undefined;
 
       // Test that missing URL is handled gracefully
-      assert.strictEqual(true, true); // Placeholder
     });
   });
 
   suite('Retry Logic', () => {
-    test('should respect max retry count', () => {
+    test.skip('should respect max retry count', () => {
       forwarder.setMaxProxyRetries(2);
-      
+
       // Test that retries don't exceed the maximum
       // This would require mocking failures and counting retry attempts
-      assert.strictEqual(true, true); // Placeholder
     });
 
-    test('should not retry indefinitely', () => {
+    test.skip('should not retry indefinitely', () => {
       // Test that retry logic has bounds
-      assert.strictEqual(true, true); // Placeholder
     });
   });
 });

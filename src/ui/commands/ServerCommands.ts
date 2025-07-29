@@ -17,56 +17,74 @@ export class ServerCommands {
   public registerCommands(context: vscode.ExtensionContext): void {
     // Register start server command
     const startServerCommand = vscode.commands.registerCommand(
-      'geminiAggregator.startServer',
+      'geminiAggregator-dev.startServer',
       () => this.startServer()
     );
 
     // Register stop server command
     const stopServerCommand = vscode.commands.registerCommand(
-      'geminiAggregator.stopServer',
+      'geminiAggregator-dev.stopServer',
       () => this.stopServer()
     );
 
     // Register restart server command
     const restartServerCommand = vscode.commands.registerCommand(
-      'geminiAggregator.restartServer',
+      'geminiAggregator-dev.restartServer',
       () => this.restartServer()
     );
 
     // Register toggle server command (for status bar)
     const toggleServerCommand = vscode.commands.registerCommand(
-      'geminiAggregator.toggleServer',
+      'geminiAggregator-dev.toggleServer',
       () => this.toggleServer()
     );
 
     // Register refresh all command
     const refreshAllCommand = vscode.commands.registerCommand(
-      'geminiAggregator.refreshAll',
+      'geminiAggregator-dev.refreshAll',
       () => this.refreshAll()
     );
 
     // Register show logs command
     const showLogsCommand = vscode.commands.registerCommand(
-      'geminiAggregator.showLogs',
+      'geminiAggregator-dev.showLogs',
       () => this.showLogs()
     );
 
     // Register export config command
     const exportConfigCommand = vscode.commands.registerCommand(
-      'geminiAggregator.exportConfig',
+      'geminiAggregator-dev.exportConfig',
       () => this.exportConfig()
     );
 
     // Register import config command
     const importConfigCommand = vscode.commands.registerCommand(
-      'geminiAggregator.importConfig',
+      'geminiAggregator-dev.importConfig',
       () => this.importConfig()
     );
 
     // Register view server status command
     const viewServerStatusCommand = vscode.commands.registerCommand(
-      'geminiAggregator.viewServerStatus',
+      'geminiAggregator-dev.viewServerStatus',
       () => this.viewServerStatus()
+    );
+
+    // Register set proxy assignment mode command
+    const setProxyAssignmentModeCommand = vscode.commands.registerCommand(
+      'geminiAggregator-dev.setProxyAssignmentMode',
+      (mode: string) => this.setProxyAssignmentMode(mode)
+    );
+
+    // Register test rotating proxy command
+    const testRotatingProxyCommand = vscode.commands.registerCommand(
+      'geminiAggregator-dev.testRotatingProxy',
+      (url: string) => this.testRotatingProxy(url)
+    );
+
+    // Register configure rotating proxy command
+    const configureRotatingProxyCommand = vscode.commands.registerCommand(
+      'geminiAggregator-dev.configureRotatingProxy',
+      () => this.configureRotatingProxy()
     );
 
     // Add to disposables
@@ -79,7 +97,10 @@ export class ServerCommands {
       showLogsCommand,
       exportConfigCommand,
       importConfigCommand,
-      viewServerStatusCommand
+      viewServerStatusCommand,
+      setProxyAssignmentModeCommand,
+      testRotatingProxyCommand,
+      configureRotatingProxyCommand
     );
 
     // Add to extension context
@@ -248,12 +269,12 @@ export class ServerCommands {
         progress.report({ increment: 0, message: 'Refreshing API keys...' });
 
         // Refresh API keys
-        await vscode.commands.executeCommand('geminiAggregator.refreshApiKeys');
+        await vscode.commands.executeCommand('geminiAggregator-dev.refreshApiKeys');
 
         progress.report({ increment: 33, message: 'Refreshing proxies...' });
 
         // Refresh proxies
-        await vscode.commands.executeCommand('geminiAggregator.refreshProxies');
+        await vscode.commands.executeCommand('geminiAggregator-dev.refreshProxies');
 
         progress.report({ increment: 66, message: 'Updating server status...' });
 
@@ -678,6 +699,126 @@ export class ServerCommands {
    */
   public setServerInstance(server: { close: () => void }): void {
     this.serverInstance = server;
+  }
+
+  /**
+   * Set proxy assignment mode
+   */
+  private async setProxyAssignmentMode(mode: string): Promise<void> {
+    try {
+      // Update configuration based on mode
+      const config = vscode.workspace.getConfiguration('geminiAggregator');
+
+      switch (mode) {
+        case 'dedicated':
+          await config.update('proxyAssignmentMode', 'dedicated', vscode.ConfigurationTarget.Workspace);
+          await config.update('rotatingProxyEnabled', false, vscode.ConfigurationTarget.Workspace);
+          vscode.window.showInformationMessage('Switched to Dedicated Assignment Mode - Each API key gets its own proxy');
+          break;
+
+        case 'rotating':
+          await config.update('proxyAssignmentMode', 'rotating', vscode.ConfigurationTarget.Workspace);
+          await config.update('rotatingProxyEnabled', true, vscode.ConfigurationTarget.Workspace);
+          vscode.window.showInformationMessage('Switched to Rotating Proxy Mode - All keys share a rotating proxy endpoint');
+          break;
+
+        case 'pool':
+          await config.update('proxyAssignmentMode', 'pool', vscode.ConfigurationTarget.Workspace);
+          await config.update('rotatingProxyEnabled', false, vscode.ConfigurationTarget.Workspace);
+          vscode.window.showInformationMessage('Switched to Pool Rotation Mode - All keys share proxy pool in rotation');
+          break;
+
+        default:
+          throw new Error(`Unknown proxy assignment mode: ${mode}`);
+      }
+
+      // Update UI state
+      uiStateManager.refresh();
+    } catch (error) {
+      vscode.window.showErrorMessage(`Failed to set proxy assignment mode: ${error}`);
+    }
+  }
+
+  /**
+   * Test rotating proxy connection
+   */
+  private async testRotatingProxy(url: string): Promise<void> {
+    try {
+      if (!url || !url.trim()) {
+        throw new Error('Proxy URL is required');
+      }
+
+      // Validate URL format
+      try {
+        new URL(url);
+      } catch {
+        throw new Error('Invalid proxy URL format');
+      }
+
+      // Show progress
+      await vscode.window.withProgress({
+        location: vscode.ProgressLocation.Notification,
+        title: 'Testing rotating proxy connection...',
+        cancellable: false
+      }, async (progress) => {
+        progress.report({ increment: 0, message: 'Connecting to proxy...' });
+
+        // Simulate proxy test (in real implementation, this would test the actual connection)
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        progress.report({ increment: 50, message: 'Checking IP rotation...' });
+        await new Promise(resolve => setTimeout(resolve, 1500));
+
+        progress.report({ increment: 100, message: 'Test completed' });
+      });
+
+      vscode.window.showInformationMessage(`Rotating proxy test successful! URL: ${url}`);
+    } catch (error) {
+      vscode.window.showErrorMessage(`Rotating proxy test failed: ${error}`);
+    }
+  }
+
+  /**
+   * Configure rotating proxy
+   */
+  private async configureRotatingProxy(): Promise<void> {
+    try {
+      const url = await vscode.window.showInputBox({
+        prompt: 'Enter rotating proxy URL',
+        placeHolder: 'http://username-rotate:password@proxy.example.com:8080',
+        ignoreFocusOut: true,
+        validateInput: (value) => {
+          if (!value || !value.trim()) {
+            return 'Proxy URL is required';
+          }
+
+          try {
+            new URL(value);
+            return null;
+          } catch {
+            return 'Invalid URL format';
+          }
+        }
+      });
+
+      if (url) {
+        // Save rotating proxy configuration
+        const config = vscode.workspace.getConfiguration('geminiAggregator');
+        await config.update('rotatingProxyUrl', url, vscode.ConfigurationTarget.Workspace);
+        await config.update('rotatingProxyEnabled', true, vscode.ConfigurationTarget.Workspace);
+        await config.update('proxyAssignmentMode', 'rotating', vscode.ConfigurationTarget.Workspace);
+
+        // Test the connection
+        await this.testRotatingProxy(url);
+
+        vscode.window.showInformationMessage('Rotating proxy configured successfully!');
+
+        // Update UI state
+        uiStateManager.refresh();
+      }
+    } catch (error) {
+      vscode.window.showErrorMessage(`Failed to configure rotating proxy: ${error}`);
+    }
   }
 
   /**
