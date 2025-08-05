@@ -29,6 +29,7 @@ import { ProxyPerformanceMonitor } from "./server/core/ProxyPerformanceMonitor";
 // Import native UI components
 import { ApiKeyTreeProvider } from './ui/providers/ApiKeyTreeProvider';
 import { ProxyTreeProvider } from './ui/providers/ProxyTreeProvider';
+import { ServerStatusTreeProvider } from './ui/providers/ServerStatusTreeProvider';
 import { ApiKeyCommands } from './ui/commands/ApiKeyCommands';
 import { ProxyCommands } from './ui/commands/ProxyCommands';
 import { ServerCommands } from './ui/commands/ServerCommands';
@@ -48,6 +49,7 @@ let proxyPoolManager: ProxyPoolManager | undefined; // Declare proxy pool manage
 // Native UI components
 let apiKeyTreeProvider: ApiKeyTreeProvider | undefined;
 let proxyTreeProvider: ProxyTreeProvider | undefined;
+let serverStatusTreeProvider: ServerStatusTreeProvider | undefined;
 let coreIntegrationService: any;
 let webviewManager: WebviewManager | undefined;
 let apiKeyCommands: ApiKeyCommands | undefined;
@@ -276,15 +278,21 @@ export async function activate(context: vscode.ExtensionContext) {
 	// Initialize TreeView providers
 	apiKeyTreeProvider = new ApiKeyTreeProvider();
 	proxyTreeProvider = new ProxyTreeProvider();
-	
+	serverStatusTreeProvider = new ServerStatusTreeProvider();
+
 	// Register TreeViews
-	const apiKeyTreeView = vscode.window.createTreeView('geminiAggregator.apiKeys', {
+	const apiKeyTreeView = vscode.window.createTreeView('geminiApiKeys', {
 		treeDataProvider: apiKeyTreeProvider,
 		showCollapseAll: true
 	});
-	
-	const proxyTreeView = vscode.window.createTreeView('geminiAggregator.proxies', {
+
+	const proxyTreeView = vscode.window.createTreeView('geminiProxies', {
 		treeDataProvider: proxyTreeProvider,
+		showCollapseAll: true
+	});
+
+	const serverStatusTreeView = vscode.window.createTreeView('geminiServerStatus', {
+		treeDataProvider: serverStatusTreeProvider,
 		showCollapseAll: true
 	});
 	
@@ -307,6 +315,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	// Register UI components with disposal manager
 	disposalManager.register(apiKeyTreeView);
 	disposalManager.register(proxyTreeView);
+	disposalManager.register(serverStatusTreeView);
 	disposalManager.register(coreIntegrationService);
 	disposalManager.register(statusBarManager);
 	disposalManager.register(systemMonitor);
@@ -318,6 +327,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		if (serverCommands) serverCommands.dispose();
 		if (apiKeyTreeProvider) apiKeyTreeProvider.dispose();
 		if (proxyTreeProvider) proxyTreeProvider.dispose();
+		if (serverStatusTreeProvider) serverStatusTreeProvider.dispose();
 	});
 	
 	// Add disposal manager to context subscriptions
