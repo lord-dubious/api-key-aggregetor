@@ -29,6 +29,7 @@ import { ProxyPerformanceMonitor } from "./server/core/ProxyPerformanceMonitor";
 // Import native UI components
 import { ApiKeyTreeProvider } from './ui/providers/ApiKeyTreeProvider';
 import { ProxyTreeProvider } from './ui/providers/ProxyTreeProvider';
+import { ServerStatusTreeProvider } from './ui/providers/ServerStatusTreeProvider';
 import { ApiKeyCommands } from './ui/commands/ApiKeyCommands';
 import { ProxyCommands } from './ui/commands/ProxyCommands';
 import { ServerCommands } from './ui/commands/ServerCommands';
@@ -44,10 +45,12 @@ let server: http.Server | undefined; // Declare server variable to manage its li
 let apiKeyManager: ApiKeyManager; // Declare apiKeyManager variable to be accessible in commands
 let webviewPanel: vscode.WebviewPanel | undefined; // 新增：保存 webviewPanel 引用
 let proxyPoolManager: ProxyPoolManager | undefined; // Declare proxy pool manager for cleanup
+let rotatingProxyHealthMonitor: RotatingProxyHealthMonitor | undefined; // Declare health monitor for cleanup
 
 // Native UI components
 let apiKeyTreeProvider: ApiKeyTreeProvider | undefined;
 let proxyTreeProvider: ProxyTreeProvider | undefined;
+let serverStatusTreeProvider: ServerStatusTreeProvider | undefined;
 let coreIntegrationService: any;
 let webviewManager: WebviewManager | undefined;
 let apiKeyCommands: ApiKeyCommands | undefined;
@@ -134,7 +137,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	const proxyConfig = await proxyConfigurationManager.loadConfiguration();
 
 	// Initialize rotating proxy health monitor
-	const rotatingProxyHealthMonitor = new RotatingProxyHealthMonitor(proxyConfigurationManager);
+	rotatingProxyHealthMonitor = new RotatingProxyHealthMonitor(proxyConfigurationManager);
 	
 	// Start health monitoring if rotating proxy is enabled
 	if (config.USE_ROTATING_PROXY && config.ROTATING_PROXY) {
@@ -182,8 +185,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		proxyConfigurationManager
 	);
 
-	// Store health monitor in context for access by other components
-	(context as any).rotatingProxyHealthMonitor = rotatingProxyHealthMonitor;
+	// Health monitor is now stored at module level for cleanup access
 	
 	// Check if migration is needed and perform it
 	const migrationNeeded = await migrationManager.isMigrationNeeded();
@@ -276,15 +278,21 @@ export async function activate(context: vscode.ExtensionContext) {
 	// Initialize TreeView providers
 	apiKeyTreeProvider = new ApiKeyTreeProvider();
 	proxyTreeProvider = new ProxyTreeProvider();
-	
+	serverStatusTreeProvider = new ServerStatusTreeProvider();
+
 	// Register TreeViews
-	const apiKeyTreeView = vscode.window.createTreeView('geminiAggregator.apiKeys', {
+	const apiKeyTreeView = vscode.window.createTreeView('geminiApiKeys', {
 		treeDataProvider: apiKeyTreeProvider,
 		showCollapseAll: true
 	});
-	
-	const proxyTreeView = vscode.window.createTreeView('geminiAggregator.proxies', {
+
+	const proxyTreeView = vscode.window.createTreeView('geminiProxies', {
 		treeDataProvider: proxyTreeProvider,
+		showCollapseAll: true
+	});
+
+	const serverStatusTreeView = vscode.window.createTreeView('geminiServerStatus', {
+		treeDataProvider: serverStatusTreeProvider,
 		showCollapseAll: true
 	});
 	
@@ -307,6 +315,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	// Register UI components with disposal manager
 	disposalManager.register(apiKeyTreeView);
 	disposalManager.register(proxyTreeView);
+	disposalManager.register(serverStatusTreeView);
 	disposalManager.register(coreIntegrationService);
 	disposalManager.register(statusBarManager);
 	disposalManager.register(systemMonitor);
@@ -318,6 +327,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		if (serverCommands) serverCommands.dispose();
 		if (apiKeyTreeProvider) apiKeyTreeProvider.dispose();
 		if (proxyTreeProvider) proxyTreeProvider.dispose();
+		if (serverStatusTreeProvider) serverStatusTreeProvider.dispose();
 	});
 	
 	// Add disposal manager to context subscriptions
@@ -382,10 +392,9 @@ export async function deactivate() {
 		console.error('Error stopping rotating proxy UI service:', error);
 	}
 
-	const healthMonitor = (context as any)?.rotatingProxyHealthMonitor;
-	if (healthMonitor) {
+	if (rotatingProxyHealthMonitor) {
 		try {
-			healthMonitor.stopMonitoring();
+			rotatingProxyHealthMonitor.stopMonitoring();
 			console.log('Rotating proxy health monitor stopped successfully.');
 		} catch (error) {
 			console.error('Error stopping rotating proxy health monitor:', error);

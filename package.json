@@ -142,6 +142,34 @@
         "title": "Gemini: Configure Rotating Proxy"
       }
     ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "geminiAggregator",
+          "title": "Gemini Aggregator",
+          "icon": "$(key)"
+        }
+      ]
+    },
+    "views": {
+      "geminiAggregator": [
+        {
+          "id": "geminiApiKeys",
+          "name": "API Keys",
+          "when": "true"
+        },
+        {
+          "id": "geminiProxies",
+          "name": "Proxies",
+          "when": "true"
+        },
+        {
+          "id": "geminiServerStatus",
+          "name": "Server Status",
+          "when": "true"
+        }
+      ]
+    },
     "configuration": {
       "title": "Gemini API Key Aggregator Configuration",
       "properties": {
