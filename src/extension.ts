@@ -45,6 +45,7 @@ let server: http.Server | undefined; // Declare server variable to manage its li
 let apiKeyManager: ApiKeyManager; // Declare apiKeyManager variable to be accessible in commands
 let webviewPanel: vscode.WebviewPanel | undefined; // 新增：保存 webviewPanel 引用
 let proxyPoolManager: ProxyPoolManager | undefined; // Declare proxy pool manager for cleanup
+let rotatingProxyHealthMonitor: RotatingProxyHealthMonitor | undefined; // Declare health monitor for cleanup
 
 // Native UI components
 let apiKeyTreeProvider: ApiKeyTreeProvider | undefined;
@@ -136,7 +137,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	const proxyConfig = await proxyConfigurationManager.loadConfiguration();
 
 	// Initialize rotating proxy health monitor
-	const rotatingProxyHealthMonitor = new RotatingProxyHealthMonitor(proxyConfigurationManager);
+	rotatingProxyHealthMonitor = new RotatingProxyHealthMonitor(proxyConfigurationManager);
 	
 	// Start health monitoring if rotating proxy is enabled
 	if (config.USE_ROTATING_PROXY && config.ROTATING_PROXY) {
@@ -184,8 +185,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		proxyConfigurationManager
 	);
 
-	// Store health monitor in context for access by other components
-	(context as any).rotatingProxyHealthMonitor = rotatingProxyHealthMonitor;
+	// Health monitor is now stored at module level for cleanup access
 	
 	// Check if migration is needed and perform it
 	const migrationNeeded = await migrationManager.isMigrationNeeded();
@@ -392,10 +392,9 @@ export async function deactivate() {
 		console.error('Error stopping rotating proxy UI service:', error);
 	}
 
-	const healthMonitor = (context as any)?.rotatingProxyHealthMonitor;
-	if (healthMonitor) {
+	if (rotatingProxyHealthMonitor) {
 		try {
-			healthMonitor.stopMonitoring();
+			rotatingProxyHealthMonitor.stopMonitoring();
 			console.log('Rotating proxy health monitor stopped successfully.');
 		} catch (error) {
 			console.error('Error stopping rotating proxy health monitor:', error);

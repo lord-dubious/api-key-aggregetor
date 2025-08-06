@@ -63,7 +63,7 @@ export class ServerStatusTreeProvider implements vscode.TreeDataProvider<ServerS
     // Add accessibility features
     item.accessibilityInformation = {
       label: `${element.label} ${element.description || ''}`,
-      role: element.type === 'serverStatus' ? 'treeitem' : 'group'
+      role: 'treeitem'
     };
     
     return item;
@@ -89,7 +89,7 @@ export class ServerStatusTreeProvider implements vscode.TreeDataProvider<ServerS
   /**
    * Get root level items
    */
-  private async getRootItems(): Promise<ServerStatusTreeItem[]> {
+  private getRootItems(): ServerStatusTreeItem[] {
     const items: ServerStatusTreeItem[] = [];
     
     // Server status
@@ -267,29 +267,29 @@ export class ServerStatusTreeProvider implements vscode.TreeDataProvider<ServerS
    */
   private createPerformanceDetails(): ServerStatusTreeItem[] {
     const items: ServerStatusTreeItem[] = [];
-    
+
     items.push({
       id: 'request-count',
       label: 'Total Requests',
-      description: '0', // TODO: Get from performance monitor
-      tooltip: 'Total number of requests processed',
+      description: 'Not available',
+      tooltip: 'Performance monitoring not yet implemented',
       iconPath: new vscode.ThemeIcon('pulse'),
       contextValue: 'requestCount',
       type: 'serverStatus',
-      status: 'active'
+      status: 'inactive'
     });
-    
+
     items.push({
       id: 'error-rate',
       label: 'Error Rate',
-      description: '0%', // TODO: Get from performance monitor
-      tooltip: 'Current error rate percentage',
+      description: 'Not available',
+      tooltip: 'Performance monitoring not yet implemented',
       iconPath: new vscode.ThemeIcon('warning'),
       contextValue: 'errorRate',
       type: 'serverStatus',
-      status: 'active'
+      status: 'inactive'
     });
-    
+
     return items;
   }
 
