@@ -24,21 +24,11 @@
     "Concurrency"
   ],
   "activationEvents": [
-    "onStartupFinished",
-    "onView:geminiApiKeys",
-    "onView:geminiProxies",
-    "onView:geminiServerStatus",
-    "onCommand:geminiAggregator-dev.addApiKey",
-    "onCommand:geminiAggregator-dev.removeApiKey",
-    "onCommand:geminiAggregator-dev.viewApiKeyDetails",
-    "onCommand:geminiAggregator-dev.testApiKey",
-    "onCommand:geminiAggregator-dev.refreshApiKeys",
-    "onCommand:geminiAggregator-dev.addProxy",
-    "onCommand:geminiAggregator-dev.removeProxy",
-    "onCommand:geminiAggregator-dev.refreshProxies",
-    "onCommand:geminiAggregator-dev.openPanel"
+    "onStartupFinished"
   ],
   "main": "./out/extension.js",
+  "extensionKind": ["workspace", "ui"],
+  "browser": "./out/extension-web.js",
   "contributes": {
     "commands": [
       {
@@ -168,16 +158,19 @@
         {
           "id": "geminiApiKeys",
           "name": "API Keys",
+          "icon": "$(key)",
           "when": "true"
         },
         {
           "id": "geminiProxies",
           "name": "Proxies",
+          "icon": "$(globe)",
           "when": "true"
         },
         {
           "id": "geminiServerStatus",
           "name": "Server Status",
+          "icon": "$(server-process)",
           "when": "true"
         }
       ]
