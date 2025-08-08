@@ -129,13 +129,13 @@ export class ProxyTreeProvider implements vscode.TreeDataProvider<ProxyTreeItem>
     // Add accessibility features
     item.accessibilityInformation = {
       label: accessibilityService.generateAccessibleLabel(element),
-      role: element.type === 'proxy' ? 'treeitem' : 'group'
+      role: 'treeitem'
     };
     
     // Add command for testing proxy
     if (element.type === 'proxy') {
       item.command = {
-        command: 'geminiAggregator.testProxy',
+        command: 'geminiAggregator-dev.testProxy',
         title: 'Test Proxy',
         arguments: [element.proxyId]
       };

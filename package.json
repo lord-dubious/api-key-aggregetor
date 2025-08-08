@@ -24,7 +24,19 @@
     "Concurrency"
   ],
   "activationEvents": [
-    "onStartupFinished"
+    "onStartupFinished",
+    "onView:geminiApiKeys",
+    "onView:geminiProxies",
+    "onView:geminiServerStatus",
+    "onCommand:geminiAggregator-dev.addApiKey",
+    "onCommand:geminiAggregator-dev.removeApiKey",
+    "onCommand:geminiAggregator-dev.viewApiKeyDetails",
+    "onCommand:geminiAggregator-dev.testApiKey",
+    "onCommand:geminiAggregator-dev.refreshApiKeys",
+    "onCommand:geminiAggregator-dev.addProxy",
+    "onCommand:geminiAggregator-dev.removeProxy",
+    "onCommand:geminiAggregator-dev.refreshProxies",
+    "onCommand:geminiAggregator-dev.openPanel"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -167,6 +179,62 @@
           "id": "geminiServerStatus",
           "name": "Server Status",
           "when": "true"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "geminiAggregator-dev.addApiKey",
+          "when": "view == geminiApiKeys",
+          "group": "navigation@1"
+        },
+        {
+          "command": "geminiAggregator-dev.refreshApiKeys",
+          "when": "view == geminiApiKeys",
+          "group": "navigation@9"
+        },
+        {
+          "command": "geminiAggregator-dev.addProxy",
+          "when": "view == geminiProxies",
+          "group": "navigation@1"
+        },
+        {
+          "command": "geminiAggregator-dev.refreshProxies",
+          "when": "view == geminiProxies",
+          "group": "navigation@9"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "geminiAggregator-dev.viewApiKeyDetails",
+          "when": "view == geminiApiKeys && viewItem == apiKey",
+          "group": "inline@1"
+        },
+        {
+          "command": "geminiAggregator-dev.removeApiKey",
+          "when": "view == geminiApiKeys && viewItem == apiKey",
+          "group": "inline@9"
+        },
+        {
+          "command": "geminiAggregator-dev.testProxy",
+          "when": "view == geminiProxies && viewItem == proxy",
+          "group": "inline@1"
+        },
+        {
+          "command": "geminiAggregator-dev.removeProxy",
+          "when": "view == geminiProxies && viewItem == proxy",
+          "group": "inline@9"
+        }
+      ],
+      "view/welcome": [
+        {
+          "view": "geminiApiKeys",
+          "contents": "No API keys yet. [Add an API key](command:geminiAggregator-dev.addApiKey)"
+        },
+        {
+          "view": "geminiProxies",
+          "contents": "No proxies yet. [Add a proxy](command:geminiAggregator-dev.addProxy)"
         }
       ]
     },

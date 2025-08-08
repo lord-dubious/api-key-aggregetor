@@ -125,13 +125,13 @@ export class ApiKeyTreeProvider implements vscode.TreeDataProvider<ApiKeyTreeIte
     // Add accessibility features
     item.accessibilityInformation = {
       label: accessibilityService.generateAccessibleLabel(element),
-      role: element.type === 'apiKey' ? 'treeitem' : 'group'
+      role: 'treeitem'
     };
     
     // Add command for viewing details
     if (element.type === 'apiKey') {
       item.command = {
-        command: 'geminiAggregator.viewApiKeyDetails',
+        command: 'geminiAggregator-dev.viewApiKeyDetails',
         title: 'View Details',
         arguments: [element.keyId]
       };
