@@ -28,7 +28,6 @@
   ],
   "main": "./out/extension.js",
   "extensionKind": ["workspace", "ui"],
-  "browser": "./out/extension-web.js",
   "contributes": {
     "commands": [
       {

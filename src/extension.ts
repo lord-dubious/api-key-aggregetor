@@ -26,10 +26,7 @@ import { RotatingProxyHealthMonitor } from "./server/core/RotatingProxyHealthMon
 import { rotatingProxyUIService } from "./ui/core/RotatingProxyUIService"; // Import RotatingProxyUIService
 import { ProxyPerformanceMonitor } from "./server/core/ProxyPerformanceMonitor"; // Import ProxyPerformanceMonitor
 
-// Import native UI components
-import { ApiKeyTreeProvider } from './ui/providers/ApiKeyTreeProvider';
-import { ProxyTreeProvider } from './ui/providers/ProxyTreeProvider';
-import { ServerStatusTreeProvider } from './ui/providers/ServerStatusTreeProvider';
+// UI components removed - using single webview sidebar
 import { ApiKeyCommands } from './ui/commands/ApiKeyCommands';
 import { ProxyCommands } from './ui/commands/ProxyCommands';
 import { ServerCommands } from './ui/commands/ServerCommands';
@@ -47,10 +44,7 @@ let webviewPanel: vscode.WebviewPanel | undefined; // 新增：保存 webviewPan
 let proxyPoolManager: ProxyPoolManager | undefined; // Declare proxy pool manager for cleanup
 let rotatingProxyHealthMonitor: RotatingProxyHealthMonitor | undefined; // Declare health monitor for cleanup
 
-// Native UI components
-let apiKeyTreeProvider: ApiKeyTreeProvider | undefined;
-let proxyTreeProvider: ProxyTreeProvider | undefined;
-let serverStatusTreeProvider: ServerStatusTreeProvider | undefined;
+// Single webview UI in sidebar
 let coreIntegrationService: any;
 let webviewManager: WebviewManager | undefined;
 let apiKeyCommands: ApiKeyCommands | undefined;
@@ -275,16 +269,23 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 	coreIntegrationService.initialize();
 	
-	// Register a single stylized Webview View in the sidebar
-	vscode.window.registerWebviewViewProvider('geminiAggregatorView', {
-		resolveWebviewView: (webviewView) => {
-			webviewView.webview.options = { enableScripts: true };
-			// Reuse existing dashboard HTML
-			const htmlPath = vscode.Uri.joinPath(context.extensionUri, 'src', 'webview', 'dashboard.html');
-			const html = fs.readFileSync(htmlPath.fsPath, 'utf8');
-			webviewView.webview.html = html;
+	// Register the stylized sidebar webview
+	const webviewProvider: vscode.WebviewViewProvider = {
+		resolveWebviewView(webviewView: vscode.WebviewView) {
+			webviewView.webview.options = {
+				enableScripts: true,
+				localResourceRoots: [context.extensionUri]
+			};
+
+			// Initialize WebviewManager for this view
+			webviewManager = new WebviewManager(context);
+			webviewManager.setupSidebarView(webviewView);
 		}
-	});
+	};
+
+	context.subscriptions.push(
+		vscode.window.registerWebviewViewProvider('geminiAggregatorView', webviewProvider)
+	);
 
 	// Initialize command handlers
 	apiKeyCommands = new ApiKeyCommands(coreIntegrationService);
@@ -312,9 +313,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		if (apiKeyCommands) apiKeyCommands.dispose();
 		if (proxyCommands) proxyCommands.dispose();
 		if (serverCommands) serverCommands.dispose();
-		if (apiKeyTreeProvider) apiKeyTreeProvider.dispose();
-		if (proxyTreeProvider) proxyTreeProvider.dispose();
-		if (serverStatusTreeProvider) serverStatusTreeProvider.dispose();
+		if (webviewManager) webviewManager.dispose();
 	});
 	
 	// Add disposal manager to context subscriptions
@@ -334,9 +333,7 @@ console.log('Roo: After registering runserver command');
 	// Note: Other commands are now handled by the structured command classes
 	// (ApiKeyCommands, ProxyCommands, ServerCommands) to avoid conflicts
 
-	// Initialize WebviewManager for message handling and content
-	webviewManager = new WebviewManager(context);
-	// No separate panel command; sidebar webview is registered above
+	// WebviewManager is initialized when sidebar view is resolved
 }
 
 // 輔助函數：生成 Nonce

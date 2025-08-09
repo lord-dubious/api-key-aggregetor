@@ -16,35 +16,19 @@ export class WebviewManager {
     }
 
     /**
-     * Create and show the webview panel
+     * Setup the sidebar webview view
      */
-    public createWebview(): void {
-        if (this.panel) {
-            this.panel.reveal(vscode.ViewColumn.One);
-            return;
-        }
+    public setupSidebarView(webviewView: vscode.WebviewView): void {
+        this.panel = {
+            webview: webviewView.webview,
+            onDidDispose: webviewView.onDidDispose,
+            dispose: () => {},
+            reveal: () => webviewView.show?.()
+        } as any;
 
-        // Use WebviewView instead of Panel when hosted in sidebar via package.json views
-        const provider: vscode.WebviewViewProvider = {
-            resolveWebviewView: (webviewView: vscode.WebviewView) => {
-                webviewView.webview.options = { enableScripts: true };
-                webviewView.webview.html = this.getWebviewContent();
-                this.panel = {
-                    webview: webviewView.webview,
-                    onDidDispose: () => {},
-                    dispose: () => {},
-                    reveal: () => webviewView.show?.()
-                } as any;
-                this.setupMessageHandling();
-                this.setupPanelEventHandlers();
-                this.sendInitialData();
-            }
-        };
-        // Registration happens in extension.ts via vscode.window.registerWebviewViewProvider
+        webviewView.webview.html = this.getWebviewContent();
         this.setupMessageHandling();
         this.setupPanelEventHandlers();
-
-        // Send initial data
         this.sendInitialData();
     }
 
