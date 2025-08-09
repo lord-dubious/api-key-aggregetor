@@ -275,27 +275,17 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 	coreIntegrationService.initialize();
 	
-	// Initialize TreeView providers
-	apiKeyTreeProvider = new ApiKeyTreeProvider();
-	proxyTreeProvider = new ProxyTreeProvider();
-	serverStatusTreeProvider = new ServerStatusTreeProvider();
-
-	// Register TreeViews
-	const apiKeyTreeView = vscode.window.createTreeView('geminiApiKeys', {
-		treeDataProvider: apiKeyTreeProvider,
-		showCollapseAll: true
+	// Register a single stylized Webview View in the sidebar
+	vscode.window.registerWebviewViewProvider('geminiAggregatorView', {
+		resolveWebviewView: (webviewView) => {
+			webviewView.webview.options = { enableScripts: true };
+			// Reuse existing dashboard HTML
+			const htmlPath = vscode.Uri.joinPath(context.extensionUri, 'src', 'webview', 'dashboard.html');
+			const html = fs.readFileSync(htmlPath.fsPath, 'utf8');
+			webviewView.webview.html = html;
+		}
 	});
 
-	const proxyTreeView = vscode.window.createTreeView('geminiProxies', {
-		treeDataProvider: proxyTreeProvider,
-		showCollapseAll: true
-	});
-
-	const serverStatusTreeView = vscode.window.createTreeView('geminiServerStatus', {
-		treeDataProvider: serverStatusTreeProvider,
-		showCollapseAll: true
-	});
-	
 	// Initialize command handlers
 	apiKeyCommands = new ApiKeyCommands(coreIntegrationService);
 	proxyCommands = new ProxyCommands(proxyPoolManager, proxyAssignmentManager);
@@ -312,10 +302,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	// Start system monitoring
 	systemMonitor.startMonitoring();
 	
-	// Register UI components with disposal manager
-	disposalManager.register(apiKeyTreeView);
-	disposalManager.register(proxyTreeView);
-	disposalManager.register(serverStatusTreeView);
+	// Register core services with disposal manager
 	disposalManager.register(coreIntegrationService);
 	disposalManager.register(statusBarManager);
 	disposalManager.register(systemMonitor);
@@ -347,19 +334,9 @@ console.log('Roo: After registering runserver command');
 	// Note: Other commands are now handled by the structured command classes
 	// (ApiKeyCommands, ProxyCommands, ServerCommands) to avoid conflicts
 
-	// Initialize WebviewManager
+	// Initialize WebviewManager for message handling and content
 	webviewManager = new WebviewManager(context);
-
-	// Register the openPanel command with new WebviewManager
-	const openPanelCommand = vscode.commands.registerCommand('geminiAggregator-dev.openPanel', () => {
-		webviewManager?.createWebview();
-	});
-
-
-	context.subscriptions.push(openPanelCommand);
-
-	// Register webview manager for disposal
-	disposalManager.register(webviewManager);
+	// No separate panel command; sidebar webview is registered above
 }
 
 // 輔助函數：生成 Nonce

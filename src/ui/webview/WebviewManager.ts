@@ -24,20 +24,23 @@ export class WebviewManager {
             return;
         }
 
-        this.panel = vscode.window.createWebviewPanel(
-            'geminiAggregatorDashboard',
-            'Gemini Aggregator Dashboard',
-            vscode.ViewColumn.One,
-            {
-                enableScripts: true,
-                retainContextWhenHidden: true,
-                localResourceRoots: [
-                    vscode.Uri.joinPath(this.context.extensionUri, 'src', 'webview')
-                ]
+        // Use WebviewView instead of Panel when hosted in sidebar via package.json views
+        const provider: vscode.WebviewViewProvider = {
+            resolveWebviewView: (webviewView: vscode.WebviewView) => {
+                webviewView.webview.options = { enableScripts: true };
+                webviewView.webview.html = this.getWebviewContent();
+                this.panel = {
+                    webview: webviewView.webview,
+                    onDidDispose: () => {},
+                    dispose: () => {},
+                    reveal: () => webviewView.show?.()
+                } as any;
+                this.setupMessageHandling();
+                this.setupPanelEventHandlers();
+                this.sendInitialData();
             }
-        );
-
-        this.panel.webview.html = this.getWebviewContent();
+        };
+        // Registration happens in extension.ts via vscode.window.registerWebviewViewProvider
         this.setupMessageHandling();
         this.setupPanelEventHandlers();
 
