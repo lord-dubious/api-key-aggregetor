@@ -2,7 +2,6 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import * as http from 'http';
-import * as fs from 'fs';     // 引入 fs 模組
 import express from 'express';
 import config from './server/config'; // Import config from the copied server code
 import createProxyRouter from './server/routes/proxy'; // Import the proxy router function
@@ -26,10 +25,7 @@ import { RotatingProxyHealthMonitor } from "./server/core/RotatingProxyHealthMon
 import { rotatingProxyUIService } from "./ui/core/RotatingProxyUIService"; // Import RotatingProxyUIService
 import { ProxyPerformanceMonitor } from "./server/core/ProxyPerformanceMonitor"; // Import ProxyPerformanceMonitor
 
-// Import native UI components
-import { ApiKeyTreeProvider } from './ui/providers/ApiKeyTreeProvider';
-import { ProxyTreeProvider } from './ui/providers/ProxyTreeProvider';
-import { ServerStatusTreeProvider } from './ui/providers/ServerStatusTreeProvider';
+// UI components removed - using single webview sidebar
 import { ApiKeyCommands } from './ui/commands/ApiKeyCommands';
 import { ProxyCommands } from './ui/commands/ProxyCommands';
 import { ServerCommands } from './ui/commands/ServerCommands';
@@ -47,10 +43,7 @@ let webviewPanel: vscode.WebviewPanel | undefined; // 新增：保存 webviewPan
 let proxyPoolManager: ProxyPoolManager | undefined; // Declare proxy pool manager for cleanup
 let rotatingProxyHealthMonitor: RotatingProxyHealthMonitor | undefined; // Declare health monitor for cleanup
 
-// Native UI components
-let apiKeyTreeProvider: ApiKeyTreeProvider | undefined;
-let proxyTreeProvider: ProxyTreeProvider | undefined;
-let serverStatusTreeProvider: ServerStatusTreeProvider | undefined;
+// Single webview UI in sidebar
 let coreIntegrationService: any;
 let webviewManager: WebviewManager | undefined;
 let apiKeyCommands: ApiKeyCommands | undefined;
@@ -98,7 +91,6 @@ async function loadProxiesFromEnvironment(proxyPoolManager: ProxyPoolManager): P
 // Your extension is activated the very first time the command is executed
 export async function activate(context: vscode.ExtensionContext) {
 
-	console.log('Roo: activate function started'); // Added log to check activation
 
 	console.log('Congratulations, your extension "api-key-aggregetor" is now active!');
 
@@ -275,27 +267,19 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 	coreIntegrationService.initialize();
 	
-	// Initialize TreeView providers
-	apiKeyTreeProvider = new ApiKeyTreeProvider();
-	proxyTreeProvider = new ProxyTreeProvider();
-	serverStatusTreeProvider = new ServerStatusTreeProvider();
+	// Register the stylized sidebar webview
+	const webviewProvider: vscode.WebviewViewProvider = {
+		async resolveWebviewView(webviewView: vscode.WebviewView) {
+			// Initialize WebviewManager for this view
+			webviewManager = new WebviewManager(context);
+			await webviewManager.setupSidebarView(webviewView);
+		}
+	};
 
-	// Register TreeViews
-	const apiKeyTreeView = vscode.window.createTreeView('geminiApiKeys', {
-		treeDataProvider: apiKeyTreeProvider,
-		showCollapseAll: true
-	});
+	context.subscriptions.push(
+		vscode.window.registerWebviewViewProvider('geminiAggregatorView', webviewProvider)
+	);
 
-	const proxyTreeView = vscode.window.createTreeView('geminiProxies', {
-		treeDataProvider: proxyTreeProvider,
-		showCollapseAll: true
-	});
-
-	const serverStatusTreeView = vscode.window.createTreeView('geminiServerStatus', {
-		treeDataProvider: serverStatusTreeProvider,
-		showCollapseAll: true
-	});
-	
 	// Initialize command handlers
 	apiKeyCommands = new ApiKeyCommands(coreIntegrationService);
 	proxyCommands = new ProxyCommands(proxyPoolManager, proxyAssignmentManager);
@@ -312,10 +296,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	// Start system monitoring
 	systemMonitor.startMonitoring();
 	
-	// Register UI components with disposal manager
-	disposalManager.register(apiKeyTreeView);
-	disposalManager.register(proxyTreeView);
-	disposalManager.register(serverStatusTreeView);
+	// Register core services with disposal manager
 	disposalManager.register(coreIntegrationService);
 	disposalManager.register(statusBarManager);
 	disposalManager.register(systemMonitor);
@@ -325,9 +306,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		if (apiKeyCommands) apiKeyCommands.dispose();
 		if (proxyCommands) proxyCommands.dispose();
 		if (serverCommands) serverCommands.dispose();
-		if (apiKeyTreeProvider) apiKeyTreeProvider.dispose();
-		if (proxyTreeProvider) proxyTreeProvider.dispose();
-		if (serverStatusTreeProvider) serverStatusTreeProvider.dispose();
+		if (webviewManager) webviewManager.dispose();
 	});
 	
 	// Add disposal manager to context subscriptions
@@ -347,30 +326,9 @@ console.log('Roo: After registering runserver command');
 	// Note: Other commands are now handled by the structured command classes
 	// (ApiKeyCommands, ProxyCommands, ServerCommands) to avoid conflicts
 
-	// Initialize WebviewManager
-	webviewManager = new WebviewManager(context);
-
-	// Register the openPanel command with new WebviewManager
-	const openPanelCommand = vscode.commands.registerCommand('geminiAggregator-dev.openPanel', () => {
-		webviewManager?.createWebview();
-	});
-
-
-	context.subscriptions.push(openPanelCommand);
-
-	// Register webview manager for disposal
-	disposalManager.register(webviewManager);
+	// WebviewManager is initialized when sidebar view is resolved
 }
 
-// 輔助函數：生成 Nonce
-function getNonce() {
-	   let text = '';
-	   const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-	   for (let i = 0; i < 32; i++) {
-	       text += possible.charAt(Math.floor(Math.random() * possible.length));
-	   }
-	   return text;
-}
 
 // This method is called when your extension is deactivated
 export async function deactivate() {

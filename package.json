@@ -27,6 +27,7 @@
     "onStartupFinished"
   ],
   "main": "./out/extension.js",
+  "extensionKind": ["workspace", "ui"],
   "contributes": {
     "commands": [
       {
@@ -154,18 +155,9 @@
     "views": {
       "geminiAggregator": [
         {
-          "id": "geminiApiKeys",
-          "name": "API Keys",
-          "when": "true"
-        },
-        {
-          "id": "geminiProxies",
-          "name": "Proxies",
-          "when": "true"
-        },
-        {
-          "id": "geminiServerStatus",
-          "name": "Server Status",
+          "id": "geminiAggregatorView",
+          "name": "Gemini Aggregator",
+          "icon": "$(key)",
           "when": "true"
         }
       ]
