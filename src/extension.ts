@@ -2,7 +2,6 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import * as http from 'http';
-import * as fs from 'fs';     // 引入 fs 模組
 import express from 'express';
 import config from './server/config'; // Import config from the copied server code
 import createProxyRouter from './server/routes/proxy'; // Import the proxy router function
@@ -92,7 +91,6 @@ async function loadProxiesFromEnvironment(proxyPoolManager: ProxyPoolManager): P
 // Your extension is activated the very first time the command is executed
 export async function activate(context: vscode.ExtensionContext) {
 
-	console.log('Roo: activate function started'); // Added log to check activation
 
 	console.log('Congratulations, your extension "api-key-aggregetor" is now active!');
 
@@ -271,15 +269,10 @@ export async function activate(context: vscode.ExtensionContext) {
 	
 	// Register the stylized sidebar webview
 	const webviewProvider: vscode.WebviewViewProvider = {
-		resolveWebviewView(webviewView: vscode.WebviewView) {
-			webviewView.webview.options = {
-				enableScripts: true,
-				localResourceRoots: [context.extensionUri]
-			};
-
+		async resolveWebviewView(webviewView: vscode.WebviewView) {
 			// Initialize WebviewManager for this view
 			webviewManager = new WebviewManager(context);
-			webviewManager.setupSidebarView(webviewView);
+			await webviewManager.setupSidebarView(webviewView);
 		}
 	};
 
@@ -336,15 +329,6 @@ console.log('Roo: After registering runserver command');
 	// WebviewManager is initialized when sidebar view is resolved
 }
 
-// 輔助函數：生成 Nonce
-function getNonce() {
-	   let text = '';
-	   const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-	   for (let i = 0; i < 32; i++) {
-	       text += possible.charAt(Math.floor(Math.random() * possible.length));
-	   }
-	   return text;
-}
 
 // This method is called when your extension is deactivated
 export async function deactivate() {

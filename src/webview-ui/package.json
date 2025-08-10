@@ -296,10 +296,10 @@
     "wrappy": "^1.0.2",
     "ws": "^8.18.2"
   },
-  "devDependencies": {},
   "devDependencies": {
     "@types/react": "^18.0.0",
-    "@types/react-dom": "^18.0.0"
+    "@types/react-dom": "^18.0.0",
+    "mini-css-extract-plugin": "^2.8.0"
   },
   "scripts": {
     "build": "webpack --config webpack.config.js",

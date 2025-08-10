@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import * as fs from 'fs';
+import * as vscode from 'vscode';
 import * as path from 'path';
 import { uiStateManager } from '../core/UIStateManager';
 
@@ -18,7 +18,7 @@ export class WebviewManager {
     /**
      * Setup the sidebar webview view
      */
-    public setupSidebarView(webviewView: vscode.WebviewView): void {
+    public async setupSidebarView(webviewView: vscode.WebviewView): Promise<void> {
         this.panel = {
             webview: webviewView.webview,
             onDidDispose: webviewView.onDidDispose,
@@ -26,23 +26,46 @@ export class WebviewManager {
             reveal: () => webviewView.show?.()
         } as any;
 
-        webviewView.webview.html = this.getWebviewContent();
+        webviewView.webview.options = {
+            enableScripts: true,
+            localResourceRoots: [vscode.Uri.joinPath(this.context.extensionUri, 'dist')]
+        };
+
+        webviewView.webview.html = await this.getWebviewContent(webviewView.webview);
         this.setupMessageHandling();
         this.setupPanelEventHandlers();
         this.sendInitialData();
     }
 
+    private getNonce() {
+        let text = '';
+        const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        for (let i = 0; i < 32; i++) {
+            text += possible.charAt(Math.floor(Math.random() * possible.length));
+        }
+        return text;
+    }
+
     /**
      * Get the HTML content for the webview
      */
-    private getWebviewContent(): string {
-        const htmlPath = path.join(this.context.extensionPath, 'src', 'webview', 'dashboard.html');
+    private async getWebviewContent(webview: vscode.Webview): Promise<string> {
+        const htmlPath = path.join(this.context.extensionPath, 'dist', 'webview-ui', 'index.html');
         
         try {
-            let html = fs.readFileSync(htmlPath, 'utf8');
-            
-            // Replace any resource URIs if needed
-            // For now, the HTML is self-contained with inline styles and scripts
+            const htmlUri = vscode.Uri.file(htmlPath);
+            const htmlBytes = await vscode.workspace.fs.readFile(htmlUri);
+            let html = new TextDecoder().decode(htmlBytes);
+
+            const nonce = this.getNonce();
+
+            const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'dist', 'webview-ui', 'bundle.js'));
+            const styleUri = webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'dist', 'webview-ui', 'bundle.css'));
+
+            html = html.replace(/{{styleUri}}/g, styleUri.toString());
+            html = html.replace(/{{scriptUri}}/g, scriptUri.toString());
+            html = html.replace(/{{cspSource}}/g, webview.cspSource);
+            html = html.replace(/{{nonce}}/g, nonce);
             
             return html;
         } catch (error) {
